@@ -85,7 +85,11 @@ def main ():
 
             dados.mutex.release()
         elif ( opcao == 1 ):
+            dados.mutex.acquire()
+
             dados.I = neg.negativo( dados.I )
+
+            dados.mutex.release()
         elif ( opcao == 2 ):
             valor = float( input ( "Insira o valor: " ) )
 
