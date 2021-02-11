@@ -6,6 +6,7 @@ from threading import Thread
 
 import numpy as np
 import funcoes_proc_img as pi
+import transformacao_log as t_log
 import negativo as neg
 import gamma
 import linear_partes
@@ -87,7 +88,12 @@ def main ():
             dados.I = neg.negativo( dados.I )
         elif ( opcao == 2 ):
             valor = float( input ( "Insira o valor: " ) )
-            dados.I = pi.ler_imagem( "Imagens/Pinguim_1.jpg" )
+
+            dados.mutex.acquire()
+
+            dados.I = t_log.transform_log( dados.I, valor )
+
+            dados.mutex.release()
         elif ( opcao == 3 ):
             valor = float( input ( "Insira o valor: " ) )
 
