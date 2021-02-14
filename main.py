@@ -32,11 +32,15 @@ class Tela ( Thread ):
     
     def run ( self ):
         while ( self.rodar ):
+            pygame.display.flip()
+            
             for event in pygame.event.get():
+                if event.type == MOUSEBUTTONUP:
+                    None 
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
-        
+
             self.dados.mutex.acquire()
             
             if not ( self.dados.I is None ):
@@ -44,7 +48,6 @@ class Tela ( Thread ):
 
             self.dados.mutex.release()
 
-            pygame.display.flip()
     
     def terminar ( self ):
         self.rodar = False
@@ -62,10 +65,24 @@ def main ():
     tr.start()
 
     while ( True ):
+        
+        pygame.event.wait()     
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
 
         opcao = -1
 
         while ( opcao < 0 or opcao > 4 ):
+
+            pygame.event.wait()
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            pygame.event.pump()
             print ( "Menu:" )
 
             print ( "-1: Sair\n"
@@ -76,6 +93,7 @@ def main ():
                   + " 4: Linear por partes\n" )
 
             opcao = int( input ( ": " ) )
+
 
             if ( opcao == -1 ):
                 tr.terminar()
@@ -125,6 +143,8 @@ if __name__ == "__main__":
     
     pygame.init()
 
+    pygame.display.set_caption("Processamento de Imagens")
+    
     tamanho_tela = larg_t, alt_t = [ 500, 500 ]
 
     tela = pygame.display.set_mode( tamanho_tela )
