@@ -22,30 +22,69 @@ class Dados :
 
         self.mutex = threading.Semaphore( 1 )
 
-class Tela ( Thread ):
-    def __init__ ( self, _dados, _tela ):
+        self.rodar = True
+
+class Console ( Thread ):
+    def __init__ ( self, _dados ):
         Thread.__init__( self )
         self.dados = _dados
-        self.tela = _tela
-
-        self.rodar = True
     
     def run ( self ):
-        while ( self.rodar ):
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-        
-            self.dados.mutex.acquire()
-            
-            if not ( self.dados.I is None ):
-                atualiza_tela( self.dados.I, self.tela, self.dados.tamanho )
+        while ( True ):
+            opcao = -1
 
-            self.dados.mutex.release()
+            while ( opcao < 0 or opcao > 4 ):
+                print ( "Menu:" )
 
-            pygame.display.flip()
-    
+                print ( "-1: Sair\n"
+                      + " 0: Abrir Imagem\n"
+                      + " 1: Negativo\n"
+                      + " 2: Transformações logarítimicas\n"
+                      + " 3: Correção de gama\n"
+                      + " 4: Linear por partes\n" )
+
+                opcao = int( input ( ": " ) )
+
+                if ( opcao == -1 ):
+                    self.dados.rodar = False
+                    return
+
+            if ( opcao == 0 ):
+                caminho = input ( "Insira o caminho: " )
+                
+                self.dados.mutex.acquire()
+                
+                self.dados.I = pi.ler_imagem( caminho )
+                self.dados.tamanho = largura, altura = [ larg_t, int(larg_t * ( self.dados.I.shape[0] / self.dados.I.shape[1] ) ) ]
+
+                self.dados.mutex.release()
+            elif ( opcao == 1 ):
+                self.dados.mutex.acquire()
+
+                self.dados.I = neg.negativo( self.dados.I )
+
+                self.dados.mutex.release()
+            elif ( opcao == 2 ):
+                valor = float( input ( "Insira o valor: " ) )
+
+                self.dados.mutex.acquire()
+
+                self.dados.I = t_log.transform_log( self.dados.I, valor )
+
+                self.dados.mutex.release()
+            elif ( opcao == 3 ):
+                valor = float( input ( "Insira o valor: " ) )
+
+                self.dados.mutex.acquire()
+
+                self.dados.I = gamma.correcao_gamma( self.dados.I, valor )
+
+                self.dados.mutex.release()
+            elif ( opcao == 4 ):
+                self.dados.I = pi.ler_imagem( "Imagens/Pinguim_1.jpg" )
+
+            print ( "\n" )
+
     def terminar ( self ):
         self.rodar = False
 
@@ -58,64 +97,27 @@ def atualiza_tela ( I, tela, tamanho ):
 
 def main ():
     dados = Dados()
-    tr = Tela( dados, tela )
+    tr = Console( dados )
     tr.start()
 
-    while ( True ):
+    while ( dados.rodar ):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: 
+                dados.rodar = False
 
-        opcao = -1
+        dados.mutex.acquire()
+        
+        if not ( dados.I is None ):
+            atualiza_tela( dados.I, tela, dados.tamanho )
 
-        while ( opcao < 0 or opcao > 4 ):
-            print ( "Menu:" )
+        dados.mutex.release()
+        
+        pygame.display.flip()
 
-            print ( "-1: Sair\n"
-                  + " 0: Abrir Imagem\n"
-                  + " 1: Negativo\n"
-                  + " 2: Transformações logarítimicas\n"
-                  + " 3: Correção de gama\n"
-                  + " 4: Linear por partes\n" )
+        pygame.event.wait( 500 )
 
-            opcao = int( input ( ": " ) )
-
-            if ( opcao == -1 ):
-                tr.terminar()
-                return
-
-        if ( opcao == 0 ):
-            caminho = input ( "Insira o caminho: " )
-            
-            dados.mutex.acquire()
-            
-            dados.I = pi.ler_imagem( caminho )
-            dados.tamanho = largura, altura = [ larg_t, int(larg_t * ( dados.I.shape[0] / dados.I.shape[1] ) ) ]
-
-            dados.mutex.release()
-        elif ( opcao == 1 ):
-            dados.mutex.acquire()
-
-            dados.I = neg.negativo( dados.I )
-
-            dados.mutex.release()
-        elif ( opcao == 2 ):
-            valor = float( input ( "Insira o valor: " ) )
-
-            dados.mutex.acquire()
-
-            dados.I = t_log.transform_log( dados.I, valor )
-
-            dados.mutex.release()
-        elif ( opcao == 3 ):
-            valor = float( input ( "Insira o valor: " ) )
-
-            dados.mutex.acquire()
-
-            dados.I = gamma.correcao_gamma( dados.I, valor )
-
-            dados.mutex.release()
-        elif ( opcao == 4 ):
-            dados.I = pi.ler_imagem( "Imagens/Pinguim_1.jpg" )
-
-        print ( "\n" )
+    pygame.quit()
+        
 
 if __name__ == "__main__":
     print ( "Programa de Processamento de Imagem - CK0167" )
@@ -123,10 +125,11 @@ if __name__ == "__main__":
           + "Ícaro da Silva Barbosa\t\t- 399002\n"
           + "\n" )
     
-    pygame.init()
-
     tamanho_tela = larg_t, alt_t = [ 500, 500 ]
 
+    pygame.init()
+
     tela = pygame.display.set_mode( tamanho_tela )
+    pygame.display.set_caption('Processador de imagens')
 
     main()
