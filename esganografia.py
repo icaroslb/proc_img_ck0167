@@ -1,7 +1,8 @@
+from playback import midiToBytes
 from gerais import mostrar_imagem
 import cv2
 import numpy as np
-import types
+
 def messageToBinary(message):
   if type(message) == str:
     return ''.join([ format(ord(i), "08b") for i in message ])
@@ -11,6 +12,7 @@ def messageToBinary(message):
     return format(message, "08b")
   else:
     raise TypeError("Input type not supported")
+
 def hideData(image, secret_message):
 
   # calculate the maximum bytes to encode
@@ -83,7 +85,10 @@ def encode_text():
   mostrar_imagem(resized_image) #display the image
   
       
-  data = input("Enter data to be encoded : ") 
+  #data = input("Enter data to be encoded : ") 
+  music_file = "bwv-773.mid"
+  data = midiToBytes(music_file)
+  
   if (len(data) == 0): 
     raise ValueError('Data is empty')
   

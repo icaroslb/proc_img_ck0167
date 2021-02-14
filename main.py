@@ -1,4 +1,5 @@
-import pygame
+import pygame, sys
+from pygame.locals import *
 #from pygame.local import *
 
 import threading
@@ -57,6 +58,12 @@ def main ():
     tr.start()
 
     while ( True ):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+        pygame.display.update()
+
         opcao = -1
 
         while ( opcao < 0 or opcao > 4 ):
