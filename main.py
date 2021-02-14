@@ -32,7 +32,11 @@ class Tela ( Thread ):
     
     def run ( self ):
         while ( self.rodar ):
-
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+        
             self.dados.mutex.acquire()
             
             if not ( self.dados.I is None ):
@@ -58,11 +62,6 @@ def main ():
     tr.start()
 
     while ( True ):
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-        pygame.display.update()
 
         opcao = -1
 
