@@ -84,7 +84,7 @@ def terminal ( dados, pontos ):
             dados.mutex.acquire()
             print( "Processando..." )
             dados.I = linear_partes( dados.I, pontos.pontos )
-            print( "Completo" )
+            print( "Completo!" )
 
             dados.mutex.release()
             

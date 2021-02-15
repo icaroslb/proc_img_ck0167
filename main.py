@@ -11,6 +11,7 @@ import transformacao_log as t_log
 import negativo as neg
 import gamma
 import linear_partes
+import filtros
 
 class Dados :
     def __init__ ( self ):
@@ -33,7 +34,7 @@ class Console ( Thread ):
         while ( True ):
             opcao = -1
 
-            while ( opcao < 0 or opcao > 4 ):
+            while ( opcao < 0 or opcao > 5 ):
                 print ( "Menu:" )
 
                 print ( "-1: Sair\n"
@@ -41,7 +42,8 @@ class Console ( Thread ):
                       + " 1: Negativo\n"
                       + " 2: Transformações logarítimicas\n"
                       + " 3: Correção de gama\n"
-                      + " 4: Linear por partes\n" )
+                      + " 4: Linear por partes\n"
+                      + " 5: Filtros\n")
 
                 opcao = int( input ( ": " ) )
 
@@ -87,6 +89,8 @@ class Console ( Thread ):
             elif ( opcao == 4 ):
                 linear_partes.terminal( self.dados, lin )
                 lin.limpar()
+            elif ( opcao == 5 ):
+                filtros.terminal( self.dados )
 
             print ( "\n" )
 

@@ -1,75 +1,137 @@
 import numpy as np
 
-def convolucao ( M, tamanho, filtro ):
-    return
-
-def media_simples ( M, tamanho ):
-    return
-
-def gaussiano ( M, tamanho ):
-    return
-
-def mediana ( M, tamanho ):
-    M_aux = np.copy( M )
-    dim = M.shape
-
-    matriz_zero = np.zeros( [ dim[0] + tamanho, dim[1] + tamanho, dim[2] ] )
-    matriz_zero[ tamanho : dim[0] + tamanho - 1, tamanho : dim[0] + tamanho - 1, :] = M_aux
-    M_aux = matriz_zero
-
-    if ( opcao_tamanho == 1 ):
-        qtd = 3
-    elif ( opcao_tamanho == 2 ):
-        qtd = 5
-    elif ( opcao_tamanho == 3 ):
-        qtd = 7
-    elif ( opcao_tamanho == 4 ):
-        qtd = 9
-
-    metade = [ ( qtd * qtd ) / 2, ( ( qtd * qtd ) / 2 ) + 1 ]
+def convolucao ( dados, M_aux, dim, filtro, qtd ):
+    dados.mutex.acquire()
 
     for i in range( dim[0] ):
         for j in range( dim[1] ):
             for k in range( dim[2] ):
-                ordem = []
+                valor = 0
+                aux = M_aux[ i:i+qtd, j:j+qtd, k ]
 
-                for l in range( i, i + qtd ):
-                    for m in range( j, j + qtd ):
-                        ordem.append( M_aux[l][m][k] )
+                valor = np.sum( aux * filtro )
+                dados.I[i][j][k] = valor
 
-                M[i][j][k] = ( ordem[ metade[0] ] + ordem[ metade[1] ] ) / 2
+    dados.mutex.release()
 
-    return M
+def media_simples ( dados, tamanho ):
+    M_aux = np.copy( dados.I )
+    dim = M_aux.shape
 
-def terminal_filtro_generico ( M, tamanho ):
+    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
+    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
+    M_aux = matriz_zero
+
+    if ( tamanho == 1 ):
+        qtd = 3
+    elif ( tamanho == 2 ):
+        qtd = 5
+    elif ( tamanho == 3 ):
+        qtd = 7
+    elif ( tamanho == 4 ):
+        qtd = 9
+
+    filtro = np.ones( [ qtd, qtd ] ) / ( qtd * qtd )
+
+    metade = [ int( ( qtd * qtd ) / 2 ), int( ( ( qtd * qtd ) / 2 ) + 1 ) ]
+
+    convolucao ( dados, M_aux, dim, filtro, qtd )
+
+def gaussiano ( dados, tamanho ):
+    return
+
+def mediana ( dados, tamanho ):
+    M_aux = np.copy( dados.I )
+    dim = M_aux.shape
+
+    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
+    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
+    M_aux = matriz_zero
+
+    if ( tamanho == 1 ):
+        qtd = 3
+    elif ( tamanho == 2 ):
+        qtd = 5
+    elif ( tamanho == 3 ):
+        qtd = 7
+    elif ( tamanho == 4 ):
+        qtd = 9
+
+    metade = [ int( ( qtd * qtd ) / 2 ), int( ( ( qtd * qtd ) / 2 ) + 1 ) ]
+
+    dados.mutex.acquire()
+
+    for i in range( dim[0] ):
+        for j in range( dim[1] ):
+            for k in range( dim[2] ):
+                dados.I[i][j][k] = np.median( M_aux[ i:i+qtd, j:j+qtd, k ] )
+
+    dados.mutex.release()
+
+def terminal_filtro_generico ( dados, tamanho ):
     while ( True ):
         print( "\nEscolha o filtro:\n"
-             + "1 - MÈdia simples"
-             + "2 - Gaussiano"
-             + "3 - Mediana" )
+             + "1 - M√©dia simples\n"
+             + "2 - Gaussiano\n"
+             + "3 - Mediana\n" )
 
         opcao = int( input( ": " ) )
 
         if ( opcao < 1 or opcao > 3 ):
-            print( "\nOpÁ„o inexistente!!\n" )
+            print( "\nOp√ß√£o inexistente!!\n" )
         else:
             break
 
-    return
+    print( "Processando..." )
+    if ( opcao == 1 ):
+        media_simples( dados, tamanho )
+    elif ( opcao == 2 ):
+        gaussiano( dados, tamanho )
+    elif ( opcao == 3 ):
+        mediana( dados, tamanho )
+    print( "Completo" )
 
-def terminal_filtro_customizado ( M, filtro ):
-    return
+def terminal_filtro_customizado ( dados, tamanho ):
+    if ( tamanho == 1 ):
+        qtd = 3
+    elif ( tamanho == 2 ):
+        qtd = 5
+    elif ( tamanho == 3 ):
+        qtd = 7
+    elif ( tamanho == 4 ):
+        qtd = 9
 
-def terminal ( M ):
+    filtro = np.zeros( [ qtd, qtd ] )
+
+    print( "\n**separe os n√∫meros com espa√ßo**\n" )
+    for i in range( qtd ):
+        filtro[ i, : ] = [ float( i ) for i in input( "Insira a linha {}: ".format( i ) ).split( " " ) ]
+
+    print( filtro )
+
+    M_aux = np.copy( dados.I )
+    dim = M_aux.shape
+
+    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
+    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
+    M_aux = matriz_zero
+
+    print( "Processando..." )
+
+    convolucao( dados, M_aux, dim, filtro, qtd )
+
+    print( "Completo" )
+
+def terminal ( dados ):
     while ( True ):
         print( "\nEscolha o tipo de filtro:\n"
-             + "1 - Filtros genÈrico\n"
+             + "1 - Filtros gen√©rico\n"
              + "2 - Filtros customizados\n" )
 
         opcao_filtro = int( input( ": " ) )
 
         if ( opcao_filtro < 1 or opcao_filtro > 2 ):
-            print( "\nOpÁ„o inexistente!!\n" )
+            print( "\nOp√ß√£o inexistente!!\n" )
         else:
             break
     
@@ -83,9 +145,14 @@ def terminal ( M ):
         opcao_tamanho = int( input( ": " ) )
 
         if ( opcao_tamanho < 1 or opcao_tamanho > 4 ):
-            print( "\nOpÁ„o inexistente!!\n" )
+            print( "\nOp√ß√£o inexistente!!\n" )
         else:
             break
+
+    if ( opcao_filtro == 1 ):
+        terminal_filtro_generico( dados, opcao_tamanho )
+    elif ( opcao_filtro == 2 ):
+        terminal_filtro_customizado( dados, opcao_tamanho )
 
     if ( opcao_tamanho == 1 ):
         filtro = np.zeros( [ 3, 3 ] )
