@@ -55,7 +55,11 @@ class Console ( Thread ):
                 self.dados.mutex.acquire()
                 
                 self.dados.I = pi.ler_imagem( caminho )
-                self.dados.tamanho = largura, altura = [ larg_t, int(larg_t * ( self.dados.I.shape[0] / self.dados.I.shape[1] ) ) ]
+
+                if ( self.dados.I.shape[1] > self.dados.I.shape[0] ):
+                    self.dados.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.dados.I.shape[0] / self.dados.I.shape[1] ) ) ]
+                else:
+                    self.dados.tamanho = largura, altura = [ int( alt_t * ( self.dados.I.shape[1] / self.dados.I.shape[0] ) ), alt_t ]
 
                 self.dados.mutex.release()
             elif ( opcao == 1 ):
@@ -81,7 +85,8 @@ class Console ( Thread ):
 
                 self.dados.mutex.release()
             elif ( opcao == 4 ):
-                self.dados.I = pi.ler_imagem( "Imagens/Pinguim_1.jpg" )
+                linear_partes.terminal( self.dados, lin )
+                lin.limpar()
 
             print ( "\n" )
 
@@ -92,7 +97,6 @@ def atualiza_tela ( I, tela, tamanho ):
     surface = pygame.surfarray.make_surface( 255 * I.transpose( 1, 0, 2 ) )
     surface = pygame.transform.scale( surface, tamanho )
 
-    tela.fill( [ 0, 0, 0 ] )
     tela.blit( surface, [ 0, 0 ] )
 
 def main ():
@@ -102,17 +106,25 @@ def main ():
 
     while ( dados.rodar ):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: 
+            if ( event.type == pygame.QUIT ):
                 dados.rodar = False
 
+        if ( pygame.mouse.get_pressed()[0] ):
+            pos = np.array( pygame.mouse.get_pos() )
+            lin.clique( pos )
+
         dados.mutex.acquire()
+
+        tela.fill( [ 0, 0, 0 ] )
         
         if not ( dados.I is None ):
             atualiza_tela( dados.I, tela, dados.tamanho )
 
         dados.mutex.release()
+
+        lin.run()
         
-        pygame.display.flip()
+        pygame.display.update()
 
         pygame.event.wait( 500 )
 
@@ -125,11 +137,13 @@ if __name__ == "__main__":
           + "Ícaro da Silva Barbosa\t\t- 399002\n"
           + "\n" )
     
-    tamanho_tela = larg_t, alt_t = [ 500, 500 ]
+    tamanho_tela = larg_t, alt_t = [ 1000, 500 ]
 
     pygame.init()
 
     tela = pygame.display.set_mode( tamanho_tela )
     pygame.display.set_caption('Processador de imagens')
+
+    lin = linear_partes.Pontos( tela, tamanho_tela )
 
     main()
