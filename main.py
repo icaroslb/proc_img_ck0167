@@ -11,6 +11,7 @@ import transformacao_log as t_log
 import negativo as neg
 import gamma
 import linear_partes
+import filtros
 
 class Dados :
     def __init__ ( self ):
@@ -31,6 +32,7 @@ class Tela ( Thread ):
         self.rodar = True
     
     def run ( self ):
+<<<<<<< HEAD
         while ( self.rodar ):
             pygame.display.flip()
             
@@ -51,6 +53,34 @@ class Tela ( Thread ):
     
     def terminar ( self ):
         self.rodar = False
+=======
+        while ( True ):
+            opcao = -1
+
+            while ( opcao < 0 or opcao > 5 ):
+                print ( "Menu:" )
+
+                print ( "-1: Sair\n"
+                      + " 0: Abrir Imagem\n"
+                      + " 1: Negativo\n"
+                      + " 2: Transformações logarítimicas\n"
+                      + " 3: Correção de gama\n"
+                      + " 4: Linear por partes\n"
+                      + " 5: Filtros\n")
+
+                opcao = int( input ( ": " ) )
+
+                if ( opcao == -1 ):
+                    self.dados.rodar = False
+                    return
+
+            if ( opcao == 0 ):
+                caminho = input ( "Insira o caminho: " )
+                
+                self.dados.mutex.acquire()
+                
+                self.dados.I = pi.ler_imagem( caminho )
+>>>>>>> eaed35f98e670ccf026cd5ec2c08d18784e38daa
 
 def atualiza_tela ( I, tela, tamanho ):
     surface = pygame.surfarray.make_surface( 255 * I.transpose( 1, 0, 2 ) )
@@ -92,7 +122,16 @@ def main ():
                   + " 3: Correção de gama\n"
                   + " 4: Linear por partes\n" )
 
+<<<<<<< HEAD
             opcao = int( input ( ": " ) )
+=======
+                self.dados.mutex.release()
+            elif ( opcao == 4 ):
+                linear_partes.terminal( self.dados, lin )
+                lin.limpar()
+            elif ( opcao == 5 ):
+                filtros.terminal( self.dados )
+>>>>>>> eaed35f98e670ccf026cd5ec2c08d18784e38daa
 
 
             if ( opcao == -1 ):
