@@ -1,7 +1,5 @@
 from esteganografia import codificar_dados, decodificar_dados
-import pygame, sys
-from pygame.locals import *
-#from pygame.local import *
+import pygame
 
 import threading
 from threading import Thread

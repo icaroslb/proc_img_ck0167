@@ -69,10 +69,8 @@ def consumir_dados(image):
 def codificar_dados(image_name): 
   image = cv2.imread(image_name) 
   
-  print("The shape of the image is: ",image.shape) #check the shape of image to calculate the number of bytes in it
+  print("The shape of the image is: ",image.shape)
   
-      
-  #data = input("Enter data to be encoded : ") 
   midis = ["bwv-773.mid", "lune-op46"]
   music_file = "midis/" + midis[urandom.randint(0,len(midis)-1)]
   data = midiToBase64(music_file).decode('utf-8')
@@ -86,7 +84,6 @@ def codificar_dados(image_name):
 
 def decodificar_dados(image_name):
   image = cv2.imread(image_name)
-    
   dados = consumir_dados(image)
 
   fish = base64.b64decode(dados.encode("utf-8"))
@@ -98,7 +95,7 @@ def decodificar_dados(image_name):
   pygame.mixer.init(44100, -16, 2, 1024)
     
   try:
-      play_music('audio.mid')
+    play_music('audio.mid')
   except KeyboardInterrupt:
 
     pygame.mixer.music.fadeout(1000)

@@ -23,18 +23,3 @@ def midiToBase64(music_file):
     # convert back to a binary midi and save to a file in the working directory
     #return base64.b64decode(mid64)
     return mid64
-
-if __name__ == "__main__":
-
-    music_file = "bwv-773.mid"
-    mid64 = midiToBase64(music_file)
-    #freq, bitsize, channels, buffer
-    pygame.mixer.init(44100, -16, 2, 1024)
-    
-    try:
-        play_music(music_file)
-    except KeyboardInterrupt:
-
-        pygame.mixer.music.fadeout(1000)
-        pygame.mixer.music.stop()
-        raise SystemExit
