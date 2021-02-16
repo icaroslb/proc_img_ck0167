@@ -16,8 +16,8 @@ import linear_partes
 import filtros
 
 class Dados :
-    def __init__ ( self ):
-        self.I = None
+    def __init__ ( self, caminho ):
+        self.I = caminho
         self.I_aux = None
 
         self.mostrar_I = True
@@ -26,6 +26,11 @@ class Dados :
         self.mutex = threading.Semaphore( 1 )
 
         self.rodar = True
+
+        if ( self.dados.I.shape[1] > self.dados.I.shape[0] ):
+            self.dados.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.dados.I.shape[0] / self.dados.I.shape[1] ) ) ]
+        else:
+            self.dados.tamanho = largura, altura = [ int( alt_t * ( self.dados.I.shape[1] / self.dados.I.shape[0] ) ), alt_t ]
 
 class Console ( Thread ):
     def __init__ ( self, _dados ):
@@ -63,12 +68,8 @@ class Console ( Thread ):
                 
                 self.dados.mutex.acquire()
                 
-                self.dados.I = pi.ler_imagem( caminho )
+                self.dados = pi.ler_imagem( self, caminho )
 
-                if ( self.dados.I.shape[1] > self.dados.I.shape[0] ):
-                    self.dados.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.dados.I.shape[0] / self.dados.I.shape[1] ) ) ]
-                else:
-                    self.dados.tamanho = largura, altura = [ int( alt_t * ( self.dados.I.shape[1] / self.dados.I.shape[0] ) ), alt_t ]
 
                 self.dados.mutex.release()
             elif ( opcao == 1 ):

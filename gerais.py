@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 
+#Ler a imagem como matriz do numpy.
 def mostrar_imagem( img ):
     img_mostrar = Image.fromarray( np.uint8( img * 255 ) ).convert( "RGB" )
     img_mostrar.show()
