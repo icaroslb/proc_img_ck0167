@@ -1,4 +1,5 @@
-from esteganografia import codificar_dados, decodificar_dados
+#from esteganografia import codificar_dados, decodificar_dados
+import esteganografia
 import pygame, sys
 from pygame.locals import *
 #from pygame.local import *
@@ -57,7 +58,8 @@ class Console ( Thread ):
             if ( opcao == 0 ):
                 caminho = input ( "Insira o caminho: " )
 
-                decodificar_dados(caminho)
+                esteg = esteganografia.Esteganografia(caminho)
+                esteg.start()
                 
                 self.dados.mutex.acquire()
                 

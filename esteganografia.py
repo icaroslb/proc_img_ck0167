@@ -5,6 +5,17 @@ from playback import midiToBase64, play_music
 import cv2
 import numpy as np
 
+from threading import Thread
+
+class Esteganografia ( Thread ):
+    def __init__ ( self, caminho ):
+        Thread.__init__( self )
+        self.caminho = caminho
+
+    def run ( self ):
+        decodificar_dados(self.caminho)
+
+
 def messageToBinary(message):
   if type(message) == str:
     return ''.join([ format(ord(i), "08b") for i in message ])
