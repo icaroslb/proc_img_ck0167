@@ -1,9 +1,20 @@
 import base64
-from os import urandom
+from random import randint
 import pygame
 from playback import midiToBase64, play_music
 import cv2
 import numpy as np
+
+from threading import Thread
+
+class Esteganografia ( Thread ):
+    def __init__ ( self, caminho ):
+        Thread.__init__( self )
+        self.caminho = caminho
+
+    def run ( self ):
+        decodificar_dados(self.caminho)
+
 
 def messageToBinary(message):
   if type(message) == str:
@@ -69,10 +80,12 @@ def consumir_dados(image):
 def codificar_dados(image_name): 
   image = cv2.imread(image_name) 
   
-  print("The shape of the image is: ",image.shape)
+  print("The shape of the image is: ",image.shape) #check the shape of image to calculate the number of bytes in it
   
-  midis = ["bwv-773.mid", "lune-op46"]
-  music_file = "midis/" + midis[urandom.randint(0,len(midis)-1)]
+      
+  #data = input("Enter data to be encoded : ") 
+  midis = ["bwv-773.mid", "lune-op46.mid"]
+  music_file = "midis/" + str(midis[randint(0,len(midis)-1)])
   data = midiToBase64(music_file).decode('utf-8')
   
   if (len(data) == 0): 
@@ -82,8 +95,11 @@ def codificar_dados(image_name):
   encoded_image = hideData(image, data)
   cv2.imwrite(filename, encoded_image)
 
+  print("A esteganografia foi executada com sucesso! :)")
+
 def decodificar_dados(image_name):
   image = cv2.imread(image_name)
+    
   dados = consumir_dados(image)
 
   fish = base64.b64decode(dados.encode("utf-8"))

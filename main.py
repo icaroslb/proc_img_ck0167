@@ -1,5 +1,8 @@
-from esteganografia import codificar_dados, decodificar_dados
-import pygame
+#from esteganografia import codificar_dados, decodificar_dados
+import esteganografia
+import pygame, sys
+from pygame.locals import *
+#from pygame.local import *
 
 import threading
 from threading import Thread
@@ -33,7 +36,7 @@ class Console ( Thread ):
         while ( True ):
             opcao = -1
 
-            while ( opcao < 0 or opcao > 5 ):
+            while ( opcao < 0 or opcao > 6 ):
                 print ( "Menu:" )
 
                 print ( "-1: Sair\n"
@@ -55,7 +58,8 @@ class Console ( Thread ):
             if ( opcao == 0 ):
                 caminho = input ( "Insira o caminho: " )
 
-                decodificar_dados(caminho)
+                esteg = esteganografia.Esteganografia(caminho)
+                esteg.start()
                 
                 self.dados.mutex.acquire()
                 
@@ -95,7 +99,7 @@ class Console ( Thread ):
             elif ( opcao == 5 ):
                 filtros.terminal( self.dados )
             elif ( opcao == 6 ):
-                codificar_dados( caminho )
+                esteganografia.codificar_dados( caminho )
 
             print ( "\n" )
 
