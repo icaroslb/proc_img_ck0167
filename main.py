@@ -106,15 +106,6 @@ def main ():
 
         while ( opcao < 0 or opcao > 4 ):
 
-            pygame.event.wait()
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-            pygame.event.pump()
-            print ( "Menu:" )
-
             print ( "-1: Sair\n"
                   + " 0: Abrir Imagem\n"
                   + " 1: Negativo\n"
