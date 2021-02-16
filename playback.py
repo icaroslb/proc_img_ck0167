@@ -17,16 +17,17 @@ def play_music(music_file):
     while pygame.mixer.music.get_busy():
         clock.tick(30)
 
-def midiToBytes(music_file):
+def midiToBase64(music_file):
     mid64 = base64.b64encode(open(music_file, 'rb').read())
     #print(mid64)
     # convert back to a binary midi and save to a file in the working directory
-    return base64.b64decode(mid64)
+    #return base64.b64decode(mid64)
+    return mid64
 
 if __name__ == "__main__":
 
     music_file = "bwv-773.mid"
-    fish = midiToBytes(music_file)
+    mid64 = midiToBase64(music_file)
     #freq, bitsize, channels, buffer
     pygame.mixer.init(44100, -16, 2, 1024)
     

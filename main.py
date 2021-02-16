@@ -1,3 +1,4 @@
+from esteganografia import codificar_dados, decodificar_dados
 import pygame, sys
 from pygame.locals import *
 #from pygame.local import *
@@ -23,37 +24,14 @@ class Dados :
 
         self.mutex = threading.Semaphore( 1 )
 
-class Tela ( Thread ):
-    def __init__ ( self, _dados, _tela ):
+        self.rodar = True
+
+class Console ( Thread ):
+    def __init__ ( self, _dados ):
         Thread.__init__( self )
         self.dados = _dados
-        self.tela = _tela
-
-        self.rodar = True
     
     def run ( self ):
-<<<<<<< HEAD
-        while ( self.rodar ):
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == MOUSEBUTTONUP:
-                    None 
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-            self.dados.mutex.acquire()
-            
-            if not ( self.dados.I is None ):
-                atualiza_tela( self.dados.I, self.tela, self.dados.tamanho )
-
-            self.dados.mutex.release()
-
-    
-    def terminar ( self ):
-        self.rodar = False
-=======
         while ( True ):
             opcao = -1
 
@@ -66,7 +44,8 @@ class Tela ( Thread ):
                       + " 2: Transformações logarítimicas\n"
                       + " 3: Correção de gama\n"
                       + " 4: Linear por partes\n"
-                      + " 5: Filtros\n")
+                      + " 5: Filtros\n"
+                      + " 6: Esteganografia\n")
 
                 opcao = int( input ( ": " ) )
 
@@ -74,96 +53,94 @@ class Tela ( Thread ):
                     self.dados.rodar = False
                     return
 
+            #Abrir imagem.
             if ( opcao == 0 ):
                 caminho = input ( "Insira o caminho: " )
+
+                decodificar_dados(caminho)
                 
                 self.dados.mutex.acquire()
                 
                 self.dados.I = pi.ler_imagem( caminho )
->>>>>>> eaed35f98e670ccf026cd5ec2c08d18784e38daa
 
-def atualiza_tela ( I, tela, tamanho ):
-    surface = pygame.surfarray.make_surface( 255 * I.transpose( 1, 0, 2 ) )
-    surface = pygame.transform.scale( surface, tamanho )
+                if ( self.dados.I.shape[1] > self.dados.I.shape[0] ):
+                    self.dados.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.dados.I.shape[0] / self.dados.I.shape[1] ) ) ]
+                else:
+                    self.dados.tamanho = largura, altura = [ int( alt_t * ( self.dados.I.shape[1] / self.dados.I.shape[0] ) ), alt_t ]
 
-    tela.fill( [ 0, 0, 0 ] )
-    tela.blit( surface, [ 0, 0 ] )
+                self.dados.mutex.release()
+            elif ( opcao == 1 ):
+                self.dados.mutex.acquire()
 
-def main ():
-    dados = Dados()
-    tr = Tela( dados, tela )
-    tr.start()
+                self.dados.I = neg.negativo( self.dados.I )
 
-    while ( True ):
-        
-        pygame.event.wait()     
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+                self.dados.mutex.release()
+            elif ( opcao == 2 ):
+                valor = float( input ( "Insira o valor: " ) )
 
-        opcao = -1
+                self.dados.mutex.acquire()
 
-        while ( opcao < 0 or opcao > 4 ):
+                self.dados.I = t_log.transform_log( self.dados.I, valor )
 
-            print ( "-1: Sair\n"
-                  + " 0: Abrir Imagem\n"
-                  + " 1: Negativo\n"
-                  + " 2: Transformações logarítimicas\n"
-                  + " 3: Correção de gama\n"
-                  + " 4: Linear por partes\n" )
+                self.dados.mutex.release()
+            elif ( opcao == 3 ):
+                valor = float( input ( "Insira o valor: " ) )
 
-<<<<<<< HEAD
-            opcao = int( input ( ": " ) )
-=======
+                self.dados.mutex.acquire()
+
+                self.dados.I = gamma.correcao_gamma( self.dados.I, valor )
+
                 self.dados.mutex.release()
             elif ( opcao == 4 ):
                 linear_partes.terminal( self.dados, lin )
                 lin.limpar()
             elif ( opcao == 5 ):
                 filtros.terminal( self.dados )
->>>>>>> eaed35f98e670ccf026cd5ec2c08d18784e38daa
+            elif ( opcao == 6 ):
+                codificar_dados( caminho )
 
+            print ( "\n" )
 
-            if ( opcao == -1 ):
-                tr.terminar()
-                return
+    def terminar ( self ):
+        self.rodar = False
 
-        if ( opcao == 0 ):
-            caminho = input ( "Insira o caminho: " )
-            
-            dados.mutex.acquire()
-            
-            dados.I = pi.ler_imagem( caminho )
-            dados.tamanho = largura, altura = [ larg_t, int(larg_t * ( dados.I.shape[0] / dados.I.shape[1] ) ) ]
+def atualiza_tela ( I, tela, tamanho ):
+    surface = pygame.surfarray.make_surface( 255 * I.transpose( 1, 0, 2 ) )
+    surface = pygame.transform.scale( surface, tamanho )
 
-            dados.mutex.release()
-        elif ( opcao == 1 ):
-            dados.mutex.acquire()
+    tela.blit( surface, [ 0, 0 ] )
 
-            dados.I = neg.negativo( dados.I )
+def main ():
+    dados = Dados()
+    tr = Console( dados )
+    tr.start()
 
-            dados.mutex.release()
-        elif ( opcao == 2 ):
-            valor = float( input ( "Insira o valor: " ) )
+    while ( dados.rodar ):
+        for event in pygame.event.get():
+            if ( event.type == pygame.QUIT ):
+                dados.rodar = False
 
-            dados.mutex.acquire()
+        if ( pygame.mouse.get_pressed()[0] ):
+            pos = np.array( pygame.mouse.get_pos() )
+            lin.clique( pos )
 
-            dados.I = t_log.transform_log( dados.I, valor )
+        dados.mutex.acquire()
 
-            dados.mutex.release()
-        elif ( opcao == 3 ):
-            valor = float( input ( "Insira o valor: " ) )
+        tela.fill( [ 0, 0, 0 ] )
+        
+        if not ( dados.I is None ):
+            atualiza_tela( dados.I, tela, dados.tamanho )
 
-            dados.mutex.acquire()
+        dados.mutex.release()
 
-            dados.I = gamma.correcao_gamma( dados.I, valor )
+        lin.run()
+        
+        pygame.display.update()
 
-            dados.mutex.release()
-        elif ( opcao == 4 ):
-            dados.I = pi.ler_imagem( "Imagens/Pinguim_1.jpg" )
+        pygame.event.wait( 500 )
 
-        print ( "\n" )
+    pygame.quit()
+        
 
 if __name__ == "__main__":
     print ( "Programa de Processamento de Imagem - CK0167" )
@@ -171,12 +148,13 @@ if __name__ == "__main__":
           + "Ícaro da Silva Barbosa\t\t- 399002\n"
           + "\n" )
     
+    tamanho_tela = larg_t, alt_t = [ 1000, 500 ]
+
     pygame.init()
 
-    pygame.display.set_caption("Processamento de Imagens")
-    
-    tamanho_tela = larg_t, alt_t = [ 500, 500 ]
-
     tela = pygame.display.set_mode( tamanho_tela )
+    pygame.display.set_caption('Processador de imagens')
+
+    lin = linear_partes.Pontos( tela, tamanho_tela )
 
     main()
