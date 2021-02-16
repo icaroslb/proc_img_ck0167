@@ -1,4 +1,13 @@
 import numpy as np
+import math
+
+def gerar_matriz_aux ( M, tamanho ):
+    M_aux = np.copy( M )
+    dim = M_aux.shape
+
+    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
+    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
+    return matriz_zero
 
 def convolucao ( dados, M_aux, dim, filtro, qtd ):
     dados.mutex.acquire()
@@ -15,12 +24,9 @@ def convolucao ( dados, M_aux, dim, filtro, qtd ):
     dados.mutex.release()
 
 def media_simples ( dados, tamanho ):
-    M_aux = np.copy( dados.I )
-    dim = M_aux.shape
-
-    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
-    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
-    M_aux = matriz_zero
+    M_aux = gerar_matriz_aux( dados.I, tamanho )
+    
+    dim = dados.I.shape
 
     if ( tamanho == 1 ):
         qtd = 3
@@ -37,16 +43,39 @@ def media_simples ( dados, tamanho ):
 
     convolucao ( dados, M_aux, dim, filtro, qtd )
 
-def gaussiano ( dados, tamanho ):
-    return
+def gaussiano ( dados, tamanho, phi ):
+    M_aux = gerar_matriz_aux( dados.I, tamanho )
+
+    dim = dados.I.shape
+
+    if ( tamanho == 1 ):
+        qtd = 3
+    elif ( tamanho == 2 ):
+        qtd = 5
+    elif ( tamanho == 3 ):
+        qtd = 7
+    elif ( tamanho == 4 ):
+        qtd = 9
+
+    filtro = np.zeros( [ qtd, qtd ] )
+
+    metade = int( qtd / 2 )
+    
+    divisao = 1 / ( 2 * math.pi * ( phi ** 2 ) )
+
+    for i in range( qtd ):
+        for j in range( qtd ):
+            exp = np.exp( - ( ( ( ( i - metade ) ** 2 ) + ( ( j - metade ) ** 2 ) ) / ( 2 * ( phi ** 2 ) ) ) )
+            filtro[i][j] = divisao * exp
+
+    print( "{}".format( filtro ) )
+
+    convolucao( dados, M_aux, dim, filtro, qtd )
 
 def mediana ( dados, tamanho ):
-    M_aux = np.copy( dados.I )
-    dim = M_aux.shape
+    M_aux = gerar_matriz_aux( dados.I, tamanho )
 
-    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
-    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
-    M_aux = matriz_zero
+    dim = dados.I.shape
 
     if ( tamanho == 1 ):
         qtd = 3
@@ -82,11 +111,14 @@ def terminal_filtro_generico ( dados, tamanho ):
         else:
             break
 
+    if ( opcao == 2 ):
+        phi = float( input( "\nInsira o phi: " ) )
+
     print( "Processando..." )
     if ( opcao == 1 ):
         media_simples( dados, tamanho )
     elif ( opcao == 2 ):
-        gaussiano( dados, tamanho )
+        gaussiano( dados, tamanho, phi )
     elif ( opcao == 3 ):
         mediana( dados, tamanho )
     print( "Completo" )
