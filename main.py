@@ -17,27 +17,31 @@ import filtros
 
 class Dados :
     def __init__ ( self, caminho ):
-        self.I = caminho
+        self.caminho = caminho
+
+        self.I = pi.ler_imagem( caminho )
         self.I_aux = None
 
         self.mostrar_I = True
         self.tamanho = None
 
-        self.mutex = threading.Semaphore( 1 )
+        #self.mutex = threading.Semaphore( 1 )
 
-        self.rodar = True
-
-        if ( self.dados.I.shape[1] > self.dados.I.shape[0] ):
-            self.dados.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.dados.I.shape[0] / self.dados.I.shape[1] ) ) ]
+        if ( self.I.shape[1] > self.I.shape[0] ):
+            self.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.I.shape[0] / self.I.shape[1] ) ) ]
         else:
-            self.dados.tamanho = largura, altura = [ int( alt_t * ( self.dados.I.shape[1] / self.dados.I.shape[0] ) ), alt_t ]
+            self.tamanho = largura, altura = [ int( alt_t * ( self.I.shape[1] / self.I.shape[0] ) ), alt_t ]
 
 class Console ( Thread ):
-    def __init__ ( self, _dados ):
+    def __init__ ( self ):
         Thread.__init__( self )
-        self.dados = _dados
+        
     
     def run ( self ):
+        global dados
+        global rodar
+        global mutex
+
         while ( True ):
             opcao = -1
 
@@ -56,7 +60,7 @@ class Console ( Thread ):
                 opcao = int( input ( ": " ) )
 
                 if ( opcao == -1 ):
-                    self.dados.rodar = False
+                    rodar = False
                     return
 
             #Abrir imagem.
@@ -66,46 +70,47 @@ class Console ( Thread ):
                 esteg = esteganografia.Esteganografia(caminho)
                 esteg.start()
                 
-                self.dados.mutex.acquire()
+                mutex.acquire()
                 
-                self.dados = pi.ler_imagem( self, caminho )
+                #self.dados = pi.ler_imagem( self, caminho )
+                dados = Dados( caminho )
 
 
-                self.dados.mutex.release()
+                mutex.release()
             elif ( opcao == 1 ):
-                self.dados.mutex.acquire()
+                mutex.acquire()
 
-                self.dados.I = neg.negativo( self.dados.I )
+                dados.I = neg.negativo( dados.I )
 
-                self.dados.mutex.release()
+                mutex.release()
             elif ( opcao == 2 ):
                 valor = float( input ( "Insira o valor: " ) )
 
-                self.dados.mutex.acquire()
+                mutex.acquire()
 
-                self.dados.I = t_log.transform_log( self.dados.I, valor )
+                dados.I = t_log.transform_log( dados.I, valor )
 
-                self.dados.mutex.release()
+                mutex.release()
             elif ( opcao == 3 ):
                 valor = float( input ( "Insira o valor: " ) )
 
-                self.dados.mutex.acquire()
+                mutex.acquire()
 
-                self.dados.I = gamma.correcao_gamma( self.dados.I, valor )
+                dados.I = gamma.correcao_gamma( dados.I, valor )
 
-                self.dados.mutex.release()
+                mutex.release()
             elif ( opcao == 4 ):
-                linear_partes.terminal( self.dados, lin )
+                linear_partes.terminal( dados, lin, mutex )
                 lin.limpar()
             elif ( opcao == 5 ):
-                filtros.terminal( self.dados )
+                filtros.terminal( dados, mutex )
             elif ( opcao == 6 ):
                 esteganografia.codificar_dados( caminho )
 
             print ( "\n" )
 
     def terminar ( self ):
-        self.rodar = False
+        rodar = False
 
 def atualiza_tela ( I, tela, tamanho ):
     surface = pygame.surfarray.make_surface( 255 * I.transpose( 1, 0, 2 ) )
@@ -114,33 +119,43 @@ def atualiza_tela ( I, tela, tamanho ):
     tela.blit( surface, [ 0, 0 ] )
 
 def main ():
-    dados = Dados()
-    tr = Console( dados )
+    #dados = Dados()
+    #tr = Console( dados )
+
+    global dados
+    global rodar
+    global mutex
+
+    tr = Console()
     tr.start()
 
-    while ( dados.rodar ):
+    clock = pygame.time.Clock()
+
+    while ( rodar ):
         for event in pygame.event.get():
             if ( event.type == pygame.QUIT ):
-                dados.rodar = False
+                rodar = False
 
         if ( pygame.mouse.get_pressed()[0] ):
             pos = np.array( pygame.mouse.get_pos() )
             lin.clique( pos )
 
-        dados.mutex.acquire()
-
         tela.fill( [ 0, 0, 0 ] )
-        
-        if not ( dados.I is None ):
-            atualiza_tela( dados.I, tela, dados.tamanho )
 
-        dados.mutex.release()
+        if not ( dados is None ):
+            mutex.acquire()
+
+            if not ( dados.I is None ):
+                atualiza_tela( dados.I, tela, dados.tamanho )
+
+            mutex.release()
 
         lin.run()
         
         pygame.display.update()
 
-        pygame.event.wait( 500 )
+        #pygame.event.wait( 500 )
+        clock.tick( 30 )
 
     pygame.quit()
         
@@ -159,5 +174,9 @@ if __name__ == "__main__":
     pygame.display.set_caption('Processador de imagens')
 
     lin = linear_partes.Pontos( tela, tamanho_tela )
+
+    dados = None
+    rodar = True
+    mutex = threading.Semaphore( 1 )
 
     main()

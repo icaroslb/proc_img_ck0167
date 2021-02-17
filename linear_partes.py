@@ -9,8 +9,8 @@ class Pontos:
 
     def run ( self ):
         for i in self.pontos:
-            pos = np.array( [ self.dim[0] + ( i[0] * self.dim[0] / 255  )
-                            , self.dim[1] - ( i[1] * self.dim[1] / 255  ) ] )
+            pos = np.array( [ int( self.dim[0] + ( i[0] * self.dim[0] / 255  ) )
+                            , int(self.dim[1] - ( i[1] * self.dim[1] / 255  ) ) ] )
             pygame.draw.circle( self.tela, [255, 255, 255], pos, 5 )
 
         pos_2 = np.array( [ self.dim[0] + ( self.pontos[0][0] * self.dim[0] / 255  )
@@ -76,17 +76,17 @@ def linear_partes ( M, pontos ):
     
     return M
 
-def terminal ( dados, pontos ):
+def terminal ( dados, pontos, mutex ):
     while ( True ):
         aplicar = input( "Aplicar? (S/N): " )
 
         if ( aplicar == "S" or aplicar == "s" ):
-            dados.mutex.acquire()
+            mutex.acquire()
             print( "Processando..." )
             dados.I = linear_partes( dados.I, pontos.pontos )
             print( "Completo!" )
 
-            dados.mutex.release()
+            mutex.release()
             
             return
         elif ( aplicar == "N" or aplicar == "n" ):
