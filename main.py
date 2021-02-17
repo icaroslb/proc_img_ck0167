@@ -1,4 +1,6 @@
 #from esteganografia import codificar_dados, decodificar_dados
+from limiarização import limiarizar
+from gerais import ler_imagem
 import esteganografia
 import pygame, sys
 from pygame.locals import *
@@ -8,16 +10,26 @@ import threading
 from threading import Thread
 
 import numpy as np
-import funcoes_proc_img as pi
 import transformacao_log as t_log
 import negativo as neg
 import gamma
 import linear_partes
 import filtros
 
+def calcular_tamanho(I, tamanho_tela):
+
+    tamanho = None
+
+    if ( I.shape[1] > I.shape[0] ):
+        tamanho = [ int( tamanho_tela[0] / 2 ), int( ( tamanho_tela[0] / 2 ) * ( I.shape[0] / I.shape[1] ) ) ]
+    else:
+        tamanho = [ int( tamanho_tela[1] * ( I.shape[1] / I.shape[0] ) ), tamanho_tela[1] ]
+
+    return tamanho
+
 class Dados :
-    def __init__ ( self, caminho ):
-        self.I = caminho
+    def __init__ ( self, imagem ):
+        self.I = imagem
         self.I_aux = None
 
         self.mostrar_I = True
@@ -26,11 +38,6 @@ class Dados :
         self.mutex = threading.Semaphore( 1 )
 
         self.rodar = True
-
-        if ( self.dados.I.shape[1] > self.dados.I.shape[0] ):
-            self.dados.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.dados.I.shape[0] / self.dados.I.shape[1] ) ) ]
-        else:
-            self.dados.tamanho = largura, altura = [ int( alt_t * ( self.dados.I.shape[1] / self.dados.I.shape[0] ) ), alt_t ]
 
 class Console ( Thread ):
     def __init__ ( self, _dados ):
@@ -41,7 +48,7 @@ class Console ( Thread ):
         while ( True ):
             opcao = -1
 
-            while ( opcao < 0 or opcao > 6 ):
+            while ( opcao < 0 or opcao > 7 ):
                 print ( "Menu:" )
 
                 print ( "-1: Sair\n"
@@ -51,7 +58,8 @@ class Console ( Thread ):
                       + " 3: Correção de gama\n"
                       + " 4: Linear por partes\n"
                       + " 5: Filtros\n"
-                      + " 6: Esteganografia\n")
+                      + " 6: Esteganografia\n"
+                      + " 7: Limiarização\n")
 
                 opcao = int( input ( ": " ) )
 
@@ -68,8 +76,9 @@ class Console ( Thread ):
                 
                 self.dados.mutex.acquire()
                 
-                self.dados = pi.ler_imagem( self, caminho )
+                self.dados.I = ler_imagem( caminho )
 
+                calcular_tamanho(self.dados.I)
 
                 self.dados.mutex.release()
             elif ( opcao == 1 ):
@@ -101,6 +110,8 @@ class Console ( Thread ):
                 filtros.terminal( self.dados )
             elif ( opcao == 6 ):
                 esteganografia.codificar_dados( caminho )
+            elif ( opcao == 7 ):
+                limiarizar( self.dados.I )
 
             print ( "\n" )
 
@@ -114,7 +125,7 @@ def atualiza_tela ( I, tela, tamanho ):
     tela.blit( surface, [ 0, 0 ] )
 
 def main ():
-    dados = Dados()
+    dados = Dados(ler_imagem("pikachu.png"))
     tr = Console( dados )
     tr.start()
 
@@ -151,7 +162,7 @@ if __name__ == "__main__":
           + "Ícaro da Silva Barbosa\t\t- 399002\n"
           + "\n" )
     
-    tamanho_tela = larg_t, alt_t = [ 1000, 500 ]
+    tamanho_tela = [ 1000, 500 ]
 
     pygame.init()
 

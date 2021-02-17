@@ -1,24 +1,20 @@
 import numpy as np
+from PIL import Image
 from gerais import ler_imagem, mostrar_imagem
 
-def limiarizar(dados, tamanho):
+def limiarizar(I):
 
-    limiar = np.double(input("Insira um valor real entre 0 e 1 para servir de limiar: "))
-    image = ler_imagem(dados.I)/255
+    limiar = int(input("Insira um valor inteiro entre 0 e 255 para servir de limiar: "))
 
-    M_aux = np.copy( dados.I )
-    dim = M_aux.shape
+    bw = Image.fromarray( np.uint8( I * 255 ) ).convert( "RGB" )
+    bw = bw.convert('L')
 
-    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
-    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
-    M_aux = matriz_zero
-
-    for i, value in enumerate(matriz_zero):
-        if value < limiar:
-            matriz_zero[i] = 0
-        else:
-            matriz_zero[i] = 1
-
-    mostrar_imagem(matriz_zero)
-
-limiarizar("pikachu.png")
+    for x in range(bw.width):
+        for y in range(bw.height):
+            if bw.getpixel((x,y)) < limiar:
+                bw.putpixel( (x,y), 0 )
+            else:
+                bw.putpixel( (x,y), 255 )
+    
+    print("Exibindo resultado da limiarização...")
+    bw.show()
