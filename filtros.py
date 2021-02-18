@@ -39,8 +39,6 @@ def media_simples ( dados, tamanho, mutex ):
 
     filtro = np.ones( [ qtd, qtd ] ) / ( qtd * qtd )
 
-    metade = [ int( ( qtd * qtd ) / 2 ), int( ( ( qtd * qtd ) / 2 ) + 1 ) ]
-
     convolucao ( dados, M_aux, dim, filtro, qtd, mutex )
 
 def gaussiano ( dados, tamanho, phi, mutex ):
@@ -65,11 +63,11 @@ def gaussiano ( dados, tamanho, phi, mutex ):
 
     for i in range( qtd ):
         for j in range( qtd ):
-            exp = np.exp( - ( ( ( ( i - metade ) ** 2 ) + ( ( j - metade ) ** 2 ) ) / ( 2 * ( phi ** 2 ) ) ) )
+            exp = math.exp( - ( ( ( ( i - metade ) ** 2 ) + ( ( j - metade ) ** 2 ) ) / ( 2 * ( phi ** 2 ) ) ) )
             filtro[i][j] = divisao * exp
 
-    print( "{}".format( filtro ) )
-
+    print( filtro )
+    
     convolucao( dados, M_aux, dim, filtro, qtd, mutex )
 
 def mediana ( dados, tamanho, mutex ):
@@ -90,10 +88,20 @@ def mediana ( dados, tamanho, mutex ):
 
     mutex.acquire()
 
+    lista_mediana = []
+
     for i in range( dim[0] ):
         for j in range( dim[1] ):
             for k in range( dim[2] ):
-                dados.I[i][j][k] = np.median( M_aux[ i:i+qtd, j:j+qtd, k ] )
+                lista_mediana.clear()
+
+                filtro = M_aux[ i:i+qtd, j:j+qtd, k ]
+                for x in filtro:
+                    for y in x:
+                        lista_mediana.append( y )
+                
+                lista_mediana = sorted( lista_mediana )
+                dados.I[i][j][k] = ( lista_mediana[ metade[0] ] + lista_mediana[ metade[1] ] ) / 2
 
     mutex.release()
 
@@ -139,14 +147,9 @@ def terminal_filtro_customizado ( dados, tamanho, mutex ):
     for i in range( qtd ):
         filtro[ i, : ] = [ float( i ) for i in input( "Insira a linha {}: ".format( i ) ).split( " " ) ]
 
-    print( filtro )
+    M_aux = gerar_matriz_aux( dados.I, tamanho )
 
-    M_aux = np.copy( dados.I )
-    dim = M_aux.shape
-
-    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
-    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
-    M_aux = matriz_zero
+    dim = dados.I.shape
 
     print( "Processando..." )
 
