@@ -1,7 +1,16 @@
 import numpy as np
+import math
 
-def convolucao ( dados, M_aux, dim, filtro, qtd ):
-    dados.mutex.acquire()
+def gerar_matriz_aux ( M, tamanho ):
+    M_aux = np.copy( M )
+    dim = M_aux.shape
+
+    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
+    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
+    return matriz_zero
+
+def convolucao ( dados, M_aux, dim, filtro, qtd, mutex ):
+    mutex.acquire()
 
     for i in range( dim[0] ):
         for j in range( dim[1] ):
@@ -12,15 +21,12 @@ def convolucao ( dados, M_aux, dim, filtro, qtd ):
                 valor = np.sum( aux * filtro )
                 dados.I[i][j][k] = valor
 
-    dados.mutex.release()
+    mutex.release()
 
-def media_simples ( dados, tamanho ):
-    M_aux = np.copy( dados.I )
-    dim = M_aux.shape
-
-    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
-    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
-    M_aux = matriz_zero
+def media_simples ( dados, tamanho, mutex ):
+    M_aux = gerar_matriz_aux( dados.I, tamanho )
+    
+    dim = dados.I.shape
 
     if ( tamanho == 1 ):
         qtd = 3
@@ -35,18 +41,41 @@ def media_simples ( dados, tamanho ):
 
     metade = [ int( ( qtd * qtd ) / 2 ), int( ( ( qtd * qtd ) / 2 ) + 1 ) ]
 
-    convolucao ( dados, M_aux, dim, filtro, qtd )
+    convolucao ( dados, M_aux, dim, filtro, qtd, mutex )
 
-def gaussiano ( dados, tamanho ):
-    return
+def gaussiano ( dados, tamanho, phi, mutex ):
+    M_aux = gerar_matriz_aux( dados.I, tamanho )
 
-def mediana ( dados, tamanho ):
-    M_aux = np.copy( dados.I )
-    dim = M_aux.shape
+    dim = dados.I.shape
 
-    matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
-    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
-    M_aux = matriz_zero
+    if ( tamanho == 1 ):
+        qtd = 3
+    elif ( tamanho == 2 ):
+        qtd = 5
+    elif ( tamanho == 3 ):
+        qtd = 7
+    elif ( tamanho == 4 ):
+        qtd = 9
+
+    filtro = np.zeros( [ qtd, qtd ] )
+
+    metade = int( qtd / 2 )
+    
+    divisao = 1 / ( 2 * math.pi * ( phi ** 2 ) )
+
+    for i in range( qtd ):
+        for j in range( qtd ):
+            exp = np.exp( - ( ( ( ( i - metade ) ** 2 ) + ( ( j - metade ) ** 2 ) ) / ( 2 * ( phi ** 2 ) ) ) )
+            filtro[i][j] = divisao * exp
+
+    print( "{}".format( filtro ) )
+
+    convolucao( dados, M_aux, dim, filtro, qtd, mutex )
+
+def mediana ( dados, tamanho, mutex ):
+    M_aux = gerar_matriz_aux( dados.I, tamanho )
+
+    dim = dados.I.shape
 
     if ( tamanho == 1 ):
         qtd = 3
@@ -59,16 +88,16 @@ def mediana ( dados, tamanho ):
 
     metade = [ int( ( qtd * qtd ) / 2 ), int( ( ( qtd * qtd ) / 2 ) + 1 ) ]
 
-    dados.mutex.acquire()
+    mutex.acquire()
 
     for i in range( dim[0] ):
         for j in range( dim[1] ):
             for k in range( dim[2] ):
                 dados.I[i][j][k] = np.median( M_aux[ i:i+qtd, j:j+qtd, k ] )
 
-    dados.mutex.release()
+    mutex.release()
 
-def terminal_filtro_generico ( dados, tamanho ):
+def terminal_filtro_generico ( dados, tamanho, mutex ):
     while ( True ):
         print( "\nEscolha o filtro:\n"
              + "1 - Média simples\n"
@@ -82,16 +111,19 @@ def terminal_filtro_generico ( dados, tamanho ):
         else:
             break
 
+    if ( opcao == 2 ):
+        phi = float( input( "\nInsira o phi: " ) )
+
     print( "Processando..." )
     if ( opcao == 1 ):
-        media_simples( dados, tamanho )
+        media_simples( dados, tamanho, mutex )
     elif ( opcao == 2 ):
-        gaussiano( dados, tamanho )
+        gaussiano( dados, tamanho, phi, mutex )
     elif ( opcao == 3 ):
-        mediana( dados, tamanho )
+        mediana( dados, tamanho, mutex )
     print( "Completo" )
 
-def terminal_filtro_customizado ( dados, tamanho ):
+def terminal_filtro_customizado ( dados, tamanho, mutex ):
     if ( tamanho == 1 ):
         qtd = 3
     elif ( tamanho == 2 ):
@@ -118,11 +150,11 @@ def terminal_filtro_customizado ( dados, tamanho ):
 
     print( "Processando..." )
 
-    convolucao( dados, M_aux, dim, filtro, qtd )
+    convolucao( dados, M_aux, dim, filtro, qtd, mutex )
 
     print( "Completo" )
 
-def terminal ( dados ):
+def terminal ( dados, mutex ):
     while ( True ):
         print( "\nEscolha o tipo de filtro:\n"
              + "1 - Filtros genérico\n"
@@ -150,16 +182,6 @@ def terminal ( dados ):
             break
 
     if ( opcao_filtro == 1 ):
-        terminal_filtro_generico( dados, opcao_tamanho )
+        terminal_filtro_generico( dados, opcao_tamanho, mutex )
     elif ( opcao_filtro == 2 ):
-        terminal_filtro_customizado( dados, opcao_tamanho )
-
-    if ( opcao_tamanho == 1 ):
-        filtro = np.zeros( [ 3, 3 ] )
-    elif ( opcao_tamanho == 2 ):
-        filtro = np.zeros( [ 5, 5 ] )
-    elif ( opcao_tamanho == 3 ):
-        filtro = np.zeros( [ 7, 7 ] )
-    elif ( opcao_tamanho == 4 ):
-        filtro = np.zeros( [ 9, 9 ] )
-
+        terminal_filtro_customizado( dados, opcao_tamanho, mutex )

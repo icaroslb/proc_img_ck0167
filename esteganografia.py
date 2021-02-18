@@ -1,4 +1,4 @@
-import base64
+import base64, time
 from random import randint
 import pygame
 from playback import midiToBase64, play_music
@@ -79,11 +79,9 @@ def consumir_dados(image):
 
 def codificar_dados(image_name): 
   image = cv2.imread(image_name) 
-  
-  print("The shape of the image is: ",image.shape) #check the shape of image to calculate the number of bytes in it
-  
+    
       
-  #data = input("Enter data to be encoded : ") 
+  #data = input(" : ") 
   midis = ["bwv-773.mid", "lune-op46.mid"]
   music_file = "midis/" + str(midis[randint(0,len(midis)-1)])
   data = midiToBase64(music_file).decode('utf-8')
@@ -96,6 +94,7 @@ def codificar_dados(image_name):
   cv2.imwrite(filename, encoded_image)
 
   print("A esteganografia foi executada com sucesso! :)")
+  time.sleep(3)
 
 def decodificar_dados(image_name):
   image = cv2.imread(image_name)
