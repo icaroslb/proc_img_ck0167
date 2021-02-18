@@ -7,6 +7,7 @@ def gerar_matriz_aux ( M, tamanho ):
 
     matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
     matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
+
     return matriz_zero
 
 def convolucao ( dados, M_aux, dim, filtro, qtd, mutex ):
@@ -15,7 +16,6 @@ def convolucao ( dados, M_aux, dim, filtro, qtd, mutex ):
     for i in range( dim[0] ):
         for j in range( dim[1] ):
             for k in range( dim[2] ):
-                valor = 0
                 aux = M_aux[ i:i+qtd, j:j+qtd, k ]
 
                 valor = np.sum( aux * filtro )
