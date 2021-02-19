@@ -2,7 +2,7 @@ from PIL import Image
 import numpy as np
 
 def gerar_matriz_aux ( M ):
-    matriz_zero = np.zeros( [ M.shape[0] , M.shape[1] , 1 ] )
+    matriz_zero = np.zeros( [ M.shape[0] , M.shape[1] , 3 ] )
 
     return matriz_zero
 
@@ -38,14 +38,16 @@ print(imgHSV)
 #Reescreve os pixels em HSV
 for x in range(img.width):
         for y in range(img.height):
-            r, g, b = img.getpixel((x, y))
-            imgHSV[x][y] = hsvPixel(r, g, b)
+            r, g, b = img.getpixel((y, x))
+            imgHSV[x, y, :] = hsvPixel(r, g, b)
 
 print(imgHSV)
 
 
-imgHSV = Image.fromarray(imgHSV)
+imgHSV = Image.fromarray( imgHSV.astype( np.uint8 ), "HSV" )
 
 print(imgHSV.mode)
 
 print(hsvPixel(0, 215, 0))
+
+imgHSV.show()
