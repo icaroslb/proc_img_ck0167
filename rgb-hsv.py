@@ -1,6 +1,10 @@
 from PIL import Image 
 import numpy as np
-from numpy import asarray 
+
+def gerar_matriz_aux ( M ):
+    matriz_zero = np.zeros( [ M.shape[0] , M.shape[1] , 1 ] )
+
+    return matriz_zero
 
 def hsvPixel(r, g, b):
     r, g, b = r/255.0, g/255.0, b/255.0
@@ -26,8 +30,12 @@ def hsvPixel(r, g, b):
 
 img = Image.open('pikachu.png')
 
-imgHSV = np.zeros( (img.width, img.height) , dtype=np.float64)
+imgArray = np.asarray(img)
 
+imgHSV = gerar_matriz_aux(imgArray)
+print(imgHSV)
+
+#Reescreve os pixels em HSV
 for x in range(img.width):
         for y in range(img.height):
             r, g, b = img.getpixel((x, y))
@@ -35,7 +43,9 @@ for x in range(img.width):
 
 print(imgHSV)
 
-imgHSV = Image.fromarray(imgHSV) 
+
+imgHSV = Image.fromarray(imgHSV)
+
 print(imgHSV.mode)
 
 print(hsvPixel(0, 215, 0))

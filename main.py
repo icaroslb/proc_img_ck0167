@@ -8,7 +8,7 @@ import threading
 from threading import Thread
 
 import numpy as np
-import gerais as pi
+import gerais as ge
 import transformacao_log as t_log
 import negativo as neg
 import gamma
@@ -19,7 +19,7 @@ class Dados :
     def __init__ ( self, caminho ):
         self.caminho = caminho
 
-        self.I = pi.ler_imagem( caminho )
+        self.I = ge.ler_imagem( caminho )
         self.I_aux = None
 
         self.mostrar_I = True
@@ -31,6 +31,14 @@ class Dados :
             self.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.I.shape[0] / self.I.shape[1] ) ) ]
         else:
             self.tamanho = largura, altura = [ int( alt_t * ( self.I.shape[1] / self.I.shape[0] ) ), alt_t ]
+        
+        #Se for cinza, converte pra colorido
+        if ( len( self.I.shape ) == 2 ):
+            zeros = np.zeros( [ self.I.shape[0], self.I.shape[1], 3 ] )
+            for i in range( 3 ):
+                zeros[ :, :, i ] = self.I
+            
+            self.I = zeros
 
 class Console ( Thread ):
     def __init__ ( self ):
@@ -72,7 +80,7 @@ class Console ( Thread ):
                 
                 mutex.acquire()
                 
-                #self.dados = pi.ler_imagem( self, caminho )
+                #self.dados = ge.ler_imagem( self, caminho )
                 dados = Dados( caminho )
 
 
@@ -113,7 +121,10 @@ class Console ( Thread ):
         rodar = False
 
 def atualiza_tela ( I, tela, tamanho ):
-    surface = pygame.surfarray.make_surface( 255 * I.transpose( 1, 0, 2 ) )
+    img_mostrar = I.transpose( 1, 0, 2 )
+
+    surface = pygame.surfarray.make_surface( 255 * img_mostrar )
+    
     surface = pygame.transform.scale( surface, tamanho )
 
     tela.blit( surface, [ 0, 0 ] )
