@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-def gerar_matriz_aux ( M, tamanho ):
+def gerar_matriz_aumentada ( M, tamanho ):
     M_aux = np.copy( M )
     dim = M_aux.shape
 
@@ -10,22 +10,25 @@ def gerar_matriz_aux ( M, tamanho ):
 
     return matriz_zero
 
-def convolucao ( dados, M_aux, dim, filtro, qtd, mutex ):
-    mutex.acquire()
+def convolucao ( dados, tamanho, dim, filtro, qtd, mutex ):
+    imagem_inteira = np.copy( dados.I )
+    imagem_aumentada = gerar_matriz_aumentada( imagem_inteira, tamanho )
 
     for i in range( dim[0] ):
         for j in range( dim[1] ):
             for k in range( dim[2] ):
-                aux = M_aux[ i:i+qtd, j:j+qtd, k ]
+                conv = imagem_aumentada[ i : i + qtd, j : j + qtd, k ]
 
-                valor = np.sum( aux * filtro )
-                dados.I[i][j][k] = valor
+                valor = np.sum( conv * filtro )
+                imagem_inteira[i][j][k] = valor
+
+    mutex.acquire()
+
+    dados.I = imagem_inteira
 
     mutex.release()
 
 def media_simples ( dados, tamanho, mutex ):
-    M_aux = gerar_matriz_aux( dados.I, tamanho )
-    
     dim = dados.I.shape
 
     if ( tamanho == 1 ):
@@ -39,11 +42,9 @@ def media_simples ( dados, tamanho, mutex ):
 
     filtro = np.ones( [ qtd, qtd ] ) / ( qtd * qtd )
 
-    convolucao ( dados, M_aux, dim, filtro, qtd, mutex )
+    convolucao ( dados, tamanho, dim, filtro, qtd, mutex )
 
-def gaussiano ( dados, tamanho, phi, mutex ):
-    M_aux = gerar_matriz_aux( dados.I, tamanho )
-
+def gaussiano ( dados, tamanho, mutex ):
     dim = dados.I.shape
 
     if ( tamanho == 1 ):
@@ -54,24 +55,24 @@ def gaussiano ( dados, tamanho, phi, mutex ):
         qtd = 7
     elif ( tamanho == 4 ):
         qtd = 9
-
+    
     filtro = np.zeros( [ qtd, qtd ] )
 
     metade = int( qtd / 2 )
     
-    divisao = 1 / ( 2 * math.pi * ( phi ** 2 ) )
+    sigma = qtd / 5
+
+    divisao = 1 / ( 2 * math.pi * ( sigma ** 2 ) )
 
     for i in range( qtd ):
         for j in range( qtd ):
-            exp = math.exp( - ( ( ( ( i - metade ) ** 2 ) + ( ( j - metade ) ** 2 ) ) / ( 2 * ( phi ** 2 ) ) ) )
+            exp = math.exp( - ( ( ( ( i - metade ) ** 2 ) + ( ( j - metade ) ** 2 ) ) / ( 2 * ( sigma ** 2 ) ) ) )
             filtro[i][j] = divisao * exp
 
-    print( filtro )
-    
-    convolucao( dados, M_aux, dim, filtro, qtd, mutex )
+    convolucao( dados, tamanho, dim, filtro, qtd, mutex )
 
 def mediana ( dados, tamanho, mutex ):
-    M_aux = gerar_matriz_aux( dados.I, tamanho )
+    M_aux = gerar_matriz_aumentada( dados.I, tamanho )
 
     dim = dados.I.shape
 
@@ -119,14 +120,11 @@ def terminal_filtro_generico ( dados, tamanho, mutex ):
         else:
             break
 
-    if ( opcao == 2 ):
-        phi = float( input( "\nInsira o phi: " ) )
-
     print( "Processando..." )
     if ( opcao == 1 ):
         media_simples( dados, tamanho, mutex )
     elif ( opcao == 2 ):
-        gaussiano( dados, tamanho, phi, mutex )
+        gaussiano( dados, tamanho, mutex )
     elif ( opcao == 3 ):
         mediana( dados, tamanho, mutex )
     print( "Completo" )
@@ -147,13 +145,11 @@ def terminal_filtro_customizado ( dados, tamanho, mutex ):
     for i in range( qtd ):
         filtro[ i, : ] = [ float( i ) for i in input( "Insira a linha {}: ".format( i ) ).split( " " ) ]
 
-    M_aux = gerar_matriz_aux( dados.I, tamanho )
-
     dim = dados.I.shape
 
     print( "Processando..." )
 
-    convolucao( dados, M_aux, dim, filtro, qtd, mutex )
+    convolucao( dados, tamanho, dim, filtro, qtd, mutex )
 
     print( "Completo" )
 
