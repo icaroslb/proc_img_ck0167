@@ -11,15 +11,19 @@ def gerar_matriz_aumentada ( M, tamanho ):
     return matriz_zero
 
 def convolucao ( imagem, tamanho, dim, filtro, qtd ):
-    retorno = np.copy( imagem )
-    imagem_aumentada = gerar_matriz_aumentada( retorno, tamanho )
+    retorno = np.zeros( imagem.shape )
+    imagem_aumentada = gerar_matriz_aumentada( imagem, tamanho )
 
     for i in range( dim[0] ):
         for j in range( dim[1] ):
             for k in range( dim[2] ):
                 conv = imagem_aumentada[ i : i + qtd, j : j + qtd, k ]
 
-                valor = np.sum( conv * filtro )
+                valor = 0
+                for x in range( qtd ):
+                    for y in range( qtd ):
+                        valor = valor + ( conv[x][y] * filtro[x][y] )
+
                 retorno[i][j][k] = valor
     
     return retorno
@@ -100,32 +104,56 @@ def mediana ( imagem, tamanho ):
     
     return imagem
 
-def laplaciano ( imagem, tamanho ):
-    dim = imagem.shape
+def laplaciano ( imagem, constante ):
+    filtro = np.array( [ [ 1, 1, 1 ], [ 1, -8, 1 ], [ 1, 1, 1 ] ] )
 
-    if ( tamanho == 1 ):
-        qtd = 3
-        filtro = np.array( [ [ -1, -1, -1 ], [ -1, 8, -1 ], [ -1, -1, -1 ] ] ) / 8
-    elif ( tamanho == 2 ):
-        qtd = 5
-        filtro = np.array( [ [ 1, 1, 1 ], [ 1, -8, 1 ], [ 1, 1, 1 ] ] )
-    elif ( tamanho == 3 ):
-        qtd = 7
-        filtro = np.array( [ [ 1, 1, 1 ], [ 1, -8, 1 ], [ 1, 1, 1 ] ] )
-    elif ( tamanho == 4 ):
-        qtd = 9
-        filtro = np.array( [ [ 1, 1, 1 ], [ 1, -8, 1 ], [ 1, 1, 1 ] ] )
+    mascara = -1 * convolucao( imagem, 1, imagem.shape, filtro, 3 )
+
+    maior_valor = max( [ valor for linha in mascara for profundidade in linha for valor in profundidade ] )
+    menor_valor = min( [ valor for linha in mascara for profundidade in linha for valor in profundidade ] )
     
-    return imagem + convolucao( imagem, tamanho, dim, filtro, qtd )
+    mascara = ( mascara - menor_valor ) / ( maior_valor - menor_valor )
+
+    return imagem + ( constante * mascara )
 
 def high_boost ( imagem, constante ):
-    np.copy( imagem )
-    
-    borrada = media_simples( imagem, 2 )
+    borrada = gaussiano( imagem, 3 )
 
     mascara = imagem - borrada
 
+    maior_valor = max( [ valor for linha in mascara for profundidade in linha for valor in profundidade ] )
+    menor_valor = min( [ valor for linha in mascara for profundidade in linha for valor in profundidade ] )
+
+    mascara = ( mascara - menor_valor ) / ( maior_valor - menor_valor )
+
     return imagem + ( constante * mascara )
+
+def sobel_x ( imagem ):
+    filtro = np.array( [ [ -1, 0, 1 ], [ -2, 0, 2 ], [ -1, 0, 1 ] ] )
+    
+    imagem_filtrada = convolucao( imagem, 1, imagem.shape, filtro, 3 )
+
+    maior_valor = max( [ valor for linha in imagem_filtrada for profundidade in linha for valor in profundidade ] )
+    menor_valor = min( [ valor for linha in imagem_filtrada for profundidade in linha for valor in profundidade ] )
+
+    return ( imagem_filtrada - menor_valor ) / ( maior_valor - menor_valor )
+
+def sobel_y ( imagem ):
+    filtro = np.array( [ [ 1, 2, 1 ], [ 0, 0, 0 ], [ -1, -2, -1 ] ] )
+    
+    imagem_filtrada = convolucao( imagem, 1, imagem.shape, filtro, 3 )
+
+    maior_valor = max( [ valor for linha in imagem_filtrada for profundidade in linha for valor in profundidade ] )
+    menor_valor = min( [ valor for linha in imagem_filtrada for profundidade in linha for valor in profundidade ] )
+
+    return ( imagem_filtrada - menor_valor ) / ( maior_valor - menor_valor )
+
+def sobel_xy ( imagem ):
+    mascara_x = sobel_x( imagem )
+    mascara_y = sobel_y( imagem )
+
+    #return ( mascara_x + mascara_y ) / 2
+    return ( mascara_x + mascara_y ) / 2
 
 def terminal_filtro_generico ( dados, tamanho, mutex ):
     while ( True ):
@@ -134,11 +162,14 @@ def terminal_filtro_generico ( dados, tamanho, mutex ):
              + "2 - Gaussiano\n"
              + "3 - Mediana\n"
              + "4 - Laplaciano\n"
-             + "5 - High boost" )
+             + "5 - High boost\n"
+             + "6 - Sobel x\n"
+             + "7 - Sobel y\n"
+             + "8 - Sobel xy\n" )
 
         opcao = int( input( ": " ) )
 
-        if ( opcao < 1 or opcao > 5 ):
+        if ( opcao < 1 or opcao > 8 ):
             print( "\nOpção inexistente!!\n" )
         else:
             break
@@ -154,9 +185,15 @@ def terminal_filtro_generico ( dados, tamanho, mutex ):
     elif ( opcao == 3 ):
         dados.I = mediana( dados.I, tamanho )
     elif ( opcao == 4 ):
-        dados.I = laplaciano( dados.I, tamanho )
+        dados.I = laplaciano( dados.I, 0.2 )
     elif ( opcao == 5 ):
-        dados.I = high_boost( dados.I, 4.5 )
+        dados.I = high_boost( dados.I, 0.2 )
+    elif ( opcao == 6 ):
+        dados.I = sobel_x( dados.I )
+    elif ( opcao == 7 ):
+        dados.I = sobel_y( dados.I )
+    elif ( opcao == 8 ):
+        dados.I = sobel_xy( dados.I )
 
     mutex.release()
 
