@@ -28,7 +28,7 @@ def rgbPixel(h, s, v):
         r1, g1, b1 = c, 0, x
 
     r, g ,b = ((r1+m)*255, (g1+m)*255, (b1+m)*255)
-    return np.uint8(r), np.uint8(g), np.uint8(b)
+    return round(r), round(g), round(b)
 
 def hsvPixel(r, g, b):
     r, g, b = r/255.0, g/255.0, b/255.0
@@ -39,7 +39,7 @@ def hsvPixel(r, g, b):
 
     if df == 0:
         h = 0
-    elif mx == r:
+    elif mx == r:   
         h = (60 * (((g-b)/df) % 6))
     elif mx == g:
         h = (60 * (((b-r)/df) +  2))
@@ -51,7 +51,8 @@ def hsvPixel(r, g, b):
         s = (df/mx)
     v = mx
 
-    return np.uint8(h), np.uint8(s*100), np.uint8(v*100)
+
+    return round(h), int(s*100), int(v*100)
 
 def hsvArray(imgArray):
     imgHSV = gerar_matriz_aux(imgArray)
@@ -146,8 +147,13 @@ def ajustarMatiz(imgHSV):
     #print(img.getpixel((250, 250)))
     img.show()
 
-img = Image.open('pikachu.png')
+img = Image.open('sonora.png')
 imgArray = np.asarray(img)
 imgHSV = hsvArray(imgArray)
 ajustarMatiz(imgHSV)
 
+#Valor hsv calculado
+print(hsvPixel(245, 84, 145))
+
+#Valor esperado
+print((337, 66, 96))
