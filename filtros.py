@@ -6,13 +6,13 @@ def gerar_matriz_aumentada ( M, tamanho ):
     dim = M_aux.shape
 
     matriz_zero = np.zeros( [ dim[0] + ( 2 * tamanho ), dim[1] + ( 2 * tamanho ), dim[2] ] )
-    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[0] + tamanho, :] = M_aux
+    matriz_zero[ tamanho : dim[0] + tamanho, tamanho : dim[1] + tamanho, :] = M_aux
 
     return matriz_zero
 
-def convolucao ( dados, tamanho, dim, filtro, qtd, mutex ):
-    imagem_inteira = np.copy( dados.I )
-    imagem_aumentada = gerar_matriz_aumentada( imagem_inteira, tamanho )
+def convolucao ( imagem, tamanho, dim, filtro, qtd ):
+    retorno = np.copy( imagem )
+    imagem_aumentada = gerar_matriz_aumentada( retorno, tamanho )
 
     for i in range( dim[0] ):
         for j in range( dim[1] ):
@@ -20,16 +20,12 @@ def convolucao ( dados, tamanho, dim, filtro, qtd, mutex ):
                 conv = imagem_aumentada[ i : i + qtd, j : j + qtd, k ]
 
                 valor = np.sum( conv * filtro )
-                imagem_inteira[i][j][k] = valor
+                retorno[i][j][k] = valor
+    
+    return retorno
 
-    mutex.acquire()
-
-    dados.I = imagem_inteira
-
-    mutex.release()
-
-def media_simples ( dados, tamanho, mutex ):
-    dim = dados.I.shape
+def media_simples ( imagem, tamanho ):
+    dim = imagem.shape
 
     if ( tamanho == 1 ):
         qtd = 3
@@ -42,10 +38,10 @@ def media_simples ( dados, tamanho, mutex ):
 
     filtro = np.ones( [ qtd, qtd ] ) / ( qtd * qtd )
 
-    convolucao ( dados, tamanho, dim, filtro, qtd, mutex )
+    return convolucao( imagem, tamanho, dim, filtro, qtd )
 
-def gaussiano ( dados, tamanho, mutex ):
-    dim = dados.I.shape
+def gaussiano ( imagem, tamanho ):
+    dim = imagem.shape
 
     if ( tamanho == 1 ):
         qtd = 3
@@ -69,12 +65,12 @@ def gaussiano ( dados, tamanho, mutex ):
             exp = math.exp( - ( ( ( ( i - metade ) ** 2 ) + ( ( j - metade ) ** 2 ) ) / ( 2 * ( sigma ** 2 ) ) ) )
             filtro[i][j] = divisao * exp
 
-    convolucao( dados, tamanho, dim, filtro, qtd, mutex )
+    return convolucao( imagem, tamanho, dim, filtro, qtd )
 
-def mediana ( dados, tamanho, mutex ):
-    M_aux = gerar_matriz_aumentada( dados.I, tamanho )
+def mediana ( imagem, tamanho ):
+    M_aux = gerar_matriz_aumentada( imagem, tamanho )
 
-    dim = dados.I.shape
+    dim = imagem.shape
 
     if ( tamanho == 1 ):
         qtd = 3
@@ -86,8 +82,6 @@ def mediana ( dados, tamanho, mutex ):
         qtd = 9
 
     metade = [ int( ( qtd * qtd ) / 2 ), int( ( ( qtd * qtd ) / 2 ) + 1 ) ]
-
-    mutex.acquire()
 
     lista_mediana = []
 
@@ -102,31 +96,70 @@ def mediana ( dados, tamanho, mutex ):
                         lista_mediana.append( y )
                 
                 lista_mediana = sorted( lista_mediana )
-                dados.I[i][j][k] = ( lista_mediana[ metade[0] ] + lista_mediana[ metade[1] ] ) / 2
+                imagem[i][j][k] = ( lista_mediana[ metade[0] ] + lista_mediana[ metade[1] ] ) / 2
+    
+    return imagem
 
-    mutex.release()
+def laplaciano ( imagem, tamanho ):
+    dim = imagem.shape
+
+    if ( tamanho == 1 ):
+        qtd = 3
+        filtro = np.array( [ [ -1, -1, -1 ], [ -1, 8, -1 ], [ -1, -1, -1 ] ] ) / 8
+    elif ( tamanho == 2 ):
+        qtd = 5
+        filtro = np.array( [ [ 1, 1, 1 ], [ 1, -8, 1 ], [ 1, 1, 1 ] ] )
+    elif ( tamanho == 3 ):
+        qtd = 7
+        filtro = np.array( [ [ 1, 1, 1 ], [ 1, -8, 1 ], [ 1, 1, 1 ] ] )
+    elif ( tamanho == 4 ):
+        qtd = 9
+        filtro = np.array( [ [ 1, 1, 1 ], [ 1, -8, 1 ], [ 1, 1, 1 ] ] )
+    
+    return imagem + convolucao( imagem, tamanho, dim, filtro, qtd )
+
+def high_boost ( imagem, constante ):
+    np.copy( imagem )
+    
+    borrada = media_simples( imagem, 2 )
+
+    mascara = imagem - borrada
+
+    return imagem + ( constante * mascara )
 
 def terminal_filtro_generico ( dados, tamanho, mutex ):
     while ( True ):
         print( "\nEscolha o filtro:\n"
              + "1 - Média simples\n"
              + "2 - Gaussiano\n"
-             + "3 - Mediana\n" )
+             + "3 - Mediana\n"
+             + "4 - Laplaciano\n"
+             + "5 - High boost" )
 
         opcao = int( input( ": " ) )
 
-        if ( opcao < 1 or opcao > 3 ):
+        if ( opcao < 1 or opcao > 5 ):
             print( "\nOpção inexistente!!\n" )
         else:
             break
 
     print( "Processando..." )
+
+    mutex.acquire()
+
     if ( opcao == 1 ):
-        media_simples( dados, tamanho, mutex )
+        dados.I = media_simples( dados.I, tamanho )
     elif ( opcao == 2 ):
-        gaussiano( dados, tamanho, mutex )
+        dados.I = gaussiano( dados.I, tamanho )
     elif ( opcao == 3 ):
-        mediana( dados, tamanho, mutex )
+        dados.I = mediana( dados.I, tamanho )
+    elif ( opcao == 4 ):
+        dados.I = laplaciano( dados.I, tamanho )
+    elif ( opcao == 5 ):
+        dados.I = high_boost( dados.I, 4.5 )
+
+    mutex.release()
+
     print( "Completo" )
 
 def terminal_filtro_customizado ( dados, tamanho, mutex ):
@@ -149,7 +182,11 @@ def terminal_filtro_customizado ( dados, tamanho, mutex ):
 
     print( "Processando..." )
 
-    convolucao( dados, tamanho, dim, filtro, qtd, mutex )
+    mutex.acquire()
+
+    dados.I = convolucao( dados.I, tamanho, dim, filtro, qtd )
+
+    mutex.release()
 
     print( "Completo" )
 
