@@ -1,6 +1,9 @@
 import numpy as np
 import math
 
+from gerais import salvar_imagem
+import fourier
+
 def gerar_matriz_aumentada ( M, tamanho ):
     M_aux = np.copy( M )
     dim = M_aux.shape
@@ -107,26 +110,28 @@ def mediana ( imagem, tamanho ):
 def laplaciano ( imagem, constante ):
     filtro = np.array( [ [ 1, 1, 1 ], [ 1, -8, 1 ], [ 1, 1, 1 ] ] )
 
-    mascara = -1 * convolucao( imagem, 1, imagem.shape, filtro, 3 )
+    mascara = convolucao( imagem, 1, imagem.shape, filtro, 3 )
+    mascara = -1 * mascara
 
-    maior_valor = max( [ valor for linha in mascara for profundidade in linha for valor in profundidade ] )
-    menor_valor = min( [ valor for linha in mascara for profundidade in linha for valor in profundidade ] )
-    
-    mascara = ( mascara - menor_valor ) / ( maior_valor - menor_valor )
+    laplace = imagem + ( constante * mascara )
 
-    return imagem + ( constante * mascara )
+    maior_valor = max( [ valor for linha in laplace for profundidade in linha for valor in profundidade ] )
+    menor_valor = min( [ valor for linha in laplace for profundidade in linha for valor in profundidade ] )
+
+    return ( laplace - menor_valor ) / ( maior_valor - menor_valor )
 
 def high_boost ( imagem, constante ):
-    borrada = gaussiano( imagem, 3 )
+    img = np.copy( imagem )
+    borrada = mediana( img, 1 )
 
     mascara = imagem - borrada
 
-    maior_valor = max( [ valor for linha in mascara for profundidade in linha for valor in profundidade ] )
-    menor_valor = min( [ valor for linha in mascara for profundidade in linha for valor in profundidade ] )
+    boost = imagem + ( constante * mascara )
 
-    mascara = ( mascara - menor_valor ) / ( maior_valor - menor_valor )
+    maior_valor = max( [ valor for linha in boost for profundidade in linha for valor in profundidade ] )
+    menor_valor = min( [ valor for linha in boost for profundidade in linha for valor in profundidade ] )
 
-    return imagem + ( constante * mascara )
+    return ( boost - menor_valor ) / ( maior_valor - menor_valor ) 
 
 def sobel_x ( imagem ):
     filtro = np.array( [ [ -1, 0, 1 ], [ -2, 0, 2 ], [ -1, 0, 1 ] ] )
@@ -165,11 +170,12 @@ def terminal_filtro_generico ( dados, tamanho, mutex ):
              + "5 - High boost\n"
              + "6 - Sobel x\n"
              + "7 - Sobel y\n"
-             + "8 - Sobel xy\n" )
+             + "8 - Sobel xy\n"
+             + "9 - Fourier\n" )
 
         opcao = int( input( ": " ) )
 
-        if ( opcao < 1 or opcao > 8 ):
+        if ( opcao < 1 or opcao > 9 ):
             print( "\nOpção inexistente!!\n" )
         else:
             break
@@ -187,13 +193,15 @@ def terminal_filtro_generico ( dados, tamanho, mutex ):
     elif ( opcao == 4 ):
         dados.I = laplaciano( dados.I, 0.2 )
     elif ( opcao == 5 ):
-        dados.I = high_boost( dados.I, 0.2 )
+        dados.I = high_boost( dados.I, 0.5 )
     elif ( opcao == 6 ):
         dados.I = sobel_x( dados.I )
     elif ( opcao == 7 ):
         dados.I = sobel_y( dados.I )
     elif ( opcao == 8 ):
         dados.I = sobel_xy( dados.I )
+    elif ( opcao == 9 ):
+        dados.I = fourier.transformada_fourier( dados.I )
 
     mutex.release()
 
