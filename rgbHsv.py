@@ -1,4 +1,4 @@
-from PIL import Image 
+from PIL import Image
 import numpy as np
 
 def gerar_matriz_aux ( M ):
@@ -62,40 +62,31 @@ def hsvArray(imgArray):
     #Reescreve os pixels em HSV
     for x in range(img.width):
         for y in range(img.height):
-                r, g, b = img.getpixel((y, x))
+                r, g, b = img.getpixel((x, y))
                 #print(img.getpixel((y, x)))
                 #print(hsvPixel(r, g, b))
                 imgHSV[x, y, :] = hsvPixel(r, g, b)
-
-    #imgHSV = Image.fromarray( imgHSV.astype(np.uint8), "HSV" )
 
     return imgHSV
 
 def rgbArray(imgHsvArray):
     rgbArray = gerar_matriz_aux(imgHsvArray)
-    img = Image.fromarray(imgHsvArray.astype( np.uint8 ), 'HSV')
 
-    #Reescreve os pixels em HSV
-    for x in range(img.width):
-        for y in range(img.height):
-                h, s, v = img.getpixel((y, x))
-                #print(img.getpixel((y, x)))
-                #print(hsvPixel(r, g, b))
+    #Reescreve os pixels em RGB, convertendo pixel a pixel
+    for x in range(imgHsvArray.shape[0]):
+        for y in range(imgHsvArray.shape[1]):
+                h, s, v = imgHsvArray[y, x, :]
                 rgbArray[x, y, :] = rgbPixel(h, s, v)
-
-    #imgHSV = Image.fromarray( imgHSV.astype(np.uint8), "HSV" )
-
     return rgbArray
 
 def ajustarSat(imgHSV):
-    newSat = 50
-    #Usando cópia da imagem no formato PIL
-    hsvCopy = Image.fromarray(imgHSV.astype( np.uint8 ), 'HSV')
-    hsvCopy.show()
+    newSat = -40
 
-    for x in range(hsvCopy.width):
-        for y in range(hsvCopy.height):
-            h, s, v = hsvCopy.getpixel((y, x))
+    #Cálculos em hsv
+    for x in range(imgHSV.shape[0]):
+        for y in range(imgHSV.shape[1]):
+            h, s, v = imgHSV[x, y, :]
+            #Aplica a alteração de saturação
             if(s + newSat > 100):
                 s = 100
             elif(s + newSat < 0):
@@ -104,18 +95,18 @@ def ajustarSat(imgHSV):
                 s = s + newSat
             imgHSV[x, y, :] = h, s, v
 
-    hsvCopy = Image.fromarray(imgHSV.astype( np.uint8 ), 'HSV')
-    hsvCopy.show()
+    #Converte de volta para rgb
+    rgb = rgbArray(imgHSV)
+    img = Image.fromarray(rgb.astype( np.uint8 ), 'RGB')
+    img.show()
+            
 
 def ajustarValor(imgHSV):
     newVal = 0
-    #Usando cópia da imagem no formato PIL
-    hsvCopy = Image.fromarray(imgHSV.astype( np.uint8 ), 'HSV')
-    #hsvCopy.show()
 
-    for x in range(hsvCopy.width):
-        for y in range(hsvCopy.height):
-            h, s, v = hsvCopy.getpixel((y, x))
+    for x in range(imgHSV.shape[0]):
+        for y in range(imgHSV.shape[1]):
+            h, s, v = imgHSV[x, y, :]
             if(v + newVal > 100):
                 v = 100
             elif(v + newVal < 0):
@@ -124,36 +115,23 @@ def ajustarValor(imgHSV):
                 v = v + newVal
             imgHSV[x, y, :] = h, s, v
 
-    hsvCopy = Image.fromarray(imgHSV.astype( np.uint8 ), 'HSV')
-    hsvCopy.show()
+    #Converte de volta para rgb
+    rgb = rgbArray(imgHSV)
+    img = Image.fromarray(rgb.astype( np.uint8 ), 'RGB')
+    img.show()
 
 def ajustarMatiz(imgHSV):
     newHue = 0
-    #Usando cópia da imagem no formato PIL
-    hsvCopy = Image.fromarray(imgHSV.astype( np.uint8 ), 'HSV')
 
-    for x in range(hsvCopy.width):
-        for y in range(hsvCopy.height):
-            h, s, v = hsvCopy.getpixel((y, x))
+    #Cálculos em hsv
+    for x in range(imgHSV.shape[0]):
+        for y in range(imgHSV.shape[1]):
+            h, s, v = imgHSV[x, y, :]
+            #Aplica a alteração de matiz
             h = (h + newHue)%360
             imgHSV[x, y, :] = h, s, v
 
-    hsvCopy = Image.fromarray(imgHSV.astype( np.uint8 ), 'HSV')
-    hsvCopy.show()
-
+    #Converte de volta para rgb
     rgb = rgbArray(imgHSV)
     img = Image.fromarray(rgb.astype( np.uint8 ), 'RGB')
-    #print(hsvCopy.getpixel((250, 250)))
-    #print(img.getpixel((250, 250)))
     img.show()
-
-img = Image.open('sonora.png')
-imgArray = np.asarray(img)
-imgHSV = hsvArray(imgArray)
-ajustarMatiz(imgHSV)
-
-#Valor hsv calculado
-print(hsvPixel(245, 84, 145))
-
-#Valor esperado
-print((337, 66, 96))
