@@ -85,11 +85,14 @@ def ajustarSat(imgHSV, newSat):
     for x in range(imgHSV.shape[0]):
         for y in range(imgHSV.shape[1]):
             h, s, v = imgHSV[x, y, :]
-            #Aplica a alteração de saturação
-            if(s + newSat > 100):
+            #Checa se o pixel está em tom puro de cinza
+            if(s == 0):
+                s = s
+            #Normaliza os valores e aplica a alteração de saturação
+            elif(s + newSat > 100):
                 s = 100
-            elif(s + newSat < 0):
-                s = 0
+            elif(s + newSat <= 0):
+                s = 1
             else:
                 s = s + newSat
             imgHSV[x, y, :] = h, s, v
