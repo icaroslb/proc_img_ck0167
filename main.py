@@ -47,8 +47,6 @@ class Dados :
             zeros = self.I[ :, :, 0 : 3 ]
             
             self.I = zeros
-        
-        print( self.I.shape )
 
 class Console ( Thread ):
     def __init__ ( self ):
@@ -70,7 +68,7 @@ class Console ( Thread ):
         while ( True ):
             opcao = -1
 
-            while ( opcao < 0 or opcao > 11 ):
+            while ( opcao < 0 or opcao > 12 ):
                 print ( "Menu:" )
 
                 print ( "-1: Sair\n"
@@ -85,7 +83,8 @@ class Console ( Thread ):
                       + " 8: Equilíbrio de cores\n"
                       + " 9: Fourier\n"
                       + "10: Transformações\n"
-                      + "11: Preto e branco\n" )
+                      + "11: Preto e branco\n"
+                      + "12: Salvar" )
 
                 opcao = int( input ( ": " ) )
 
@@ -137,17 +136,21 @@ class Console ( Thread ):
             elif ( opcao == 5 ):
                 filtros.terminal( dados, mutex )
             elif ( opcao == 6 ):
-                esteganografia.codificar_dados( caminho )
+                esteganografia.codificar_dados( dados )
             elif ( opcao == 7 ):
-                hsv_interface.janelaHsv(caminho)
+                hsv_interface.janelaHsv( dados )
             elif ( opcao == 8 ):
-                eqCores_Interface.janelaEq(caminho)
+                eqCores_Interface.janelaEq( dados )
             elif ( opcao == 9 ):
                 fourier.transformada_terminal( dados, mutex )
             elif ( opcao == 10 ):
                 transformacoes.transformacoes_terminal( dados, mutex )
             elif ( opcao == 11 ):
-                bw.converter(caminho)
+                bw.converter( dados, mutex )
+            elif ( opcao == 12 ):
+                nome_salvo = input( "Insira o nome pra salvar: " )
+                ge.salvar_imagem( dados.I, nome_salvo, "png" )
+
 
             print ( "\n" )
 

@@ -56,16 +56,20 @@ def hsvPixel(r, g, b):
 
 def hsvArray(imgArray):
     imgHSV = gerar_matriz_aux(imgArray)
-    img = Image.fromarray(imgArray)
+    #img = Image.fromarray(imgArray)
+    img = imgArray
 
 
     #Reescreve os pixels em HSV
-    for x in range(img.width):
-        for y in range(img.height):
-                r, g, b = img.getpixel((x, y))
-                #print(img.getpixel((y, x)))
-                #print(hsvPixel(r, g, b))
-                imgHSV[x, y, :] = hsvPixel(r, g, b)
+    #for x in range(img.width):
+        #for y in range(img.height):
+    for x in range( img.shape[1] ):
+        for y in range( img.shape[0] ):
+            #r, g, b = img.getpixel((x, y))
+            r, g, b = img[ y, x, : ]
+            #print(img.getpixel((y, x)))
+            #print(hsvPixel(r, g, b))
+            imgHSV[x, y, :] = hsvPixel(r, g, b)
 
     return imgHSV
 

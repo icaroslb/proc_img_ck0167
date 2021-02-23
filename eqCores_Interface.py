@@ -16,13 +16,14 @@ class eqWindow(tk.Tk):
 
     def __init__(self, caminho):
         super().__init__()
-        
-        self.image = PIL.Image.open(caminho)
+        global dados_f
+        #self.image = PIL.Image.open(caminho)
+        self.image = PIL.Image.fromarray( np.uint8( dados_f.I * 255 ) ).convert( "RGB" )
         self.img2 = self.image
         self.title('Equilíbrio de Cores')
         #self.resizable(0, 0)
 
-        self.create_widgets(caminho)
+        self.create_widgets(dados_f.caminho)
 
     def create_widgets(self, caminho):
         imgArray = np.asarray(self.image)
@@ -48,7 +49,8 @@ class eqWindow(tk.Tk):
 
 
         def salvar():
-            self.img2.save("NovaImagem.png", "png")
+            #self.img2.save("NovaImagem.png", "png")
+            dados_f.I = np.array( self.img2 ) / 255
             
 
 
@@ -95,10 +97,15 @@ class eqWindow(tk.Tk):
 
         salvar = Button(space, text=" Salvar ", command=salvar)
         salvar.pack(anchor= CENTER, side=BOTTOM, expand=1)
-        
-def janelaEq(caminho):
+
+dados_f = None
+
+def janelaEq( dados ):
     print("Confira a janela de edição")
 
-    root = eqWindow(caminho)
+    global dados_f
+    dados_f = dados
+
+    root = eqWindow(dados.caminho)
     root.mainloop()
 

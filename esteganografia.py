@@ -77,9 +77,9 @@ def consumir_dados(image):
           break
   return decoded_data[:-5] 
 
-def codificar_dados(image_name): 
-  image = cv2.imread(image_name) 
-    
+def codificar_dados( dados ): 
+  #image = cv2.imread(image_name) 
+  image = ( dados.I * 255 ).astype( int )
       
   #data = input(" : ") 
   midis = ["bwv-773.mid", "lune-op46.mid"]

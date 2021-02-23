@@ -1,9 +1,12 @@
+from gerais import salvar_imagem
 import PIL
 from PIL import Image, ImageTk
 from tkinter import *
 import numpy as np
 import tkinter as tk
+from tkinter import ttk
 from rgbHsv import ajustarValor, hsvArray, ajustarSat, ajustarMatiz
+import rgbHsv
 
 
 
@@ -13,15 +16,17 @@ class HsvWindow(tk.Tk):
     image = PIL.Image.new("RGB", (800, 1280), (255, 255, 255))
     img2 = image
 
-    def __init__(self, caminho):
+    def __init__(self, dados):
         super().__init__()
         
-        self.image = PIL.Image.open(caminho)
+        global dados_f
+        #self.dados = dados
+        self.image = PIL.Image.fromarray( np.uint8( dados.I * 255 ) ).convert( "RGB" ) #PIL.Image.open(caminho)
         self.img2 = self.image
         self.title('Matiz, saturação e brilho')
         #self.resizable(0, 0)
 
-        self.create_widgets(caminho)
+        self.create_widgets( dados.caminho )
 
     def create_widgets(self, caminho):
         #Imagem
@@ -52,7 +57,7 @@ class HsvWindow(tk.Tk):
             img_label.image = photo
 
         def salvar():
-            self.img2.save("NovaImagem.png", "png")
+            dados_f.I = rgbHsv.rgbArray( hsv ) / 255
             
 
         def valor():
@@ -108,9 +113,14 @@ class HsvWindow(tk.Tk):
 
         salvar = Button(space, text=" Salvar ", command=salvar)
         salvar.pack(anchor= CENTER, side=BOTTOM, expand=1)
-        
-def janelaHsv(caminho):
+
+dados_f = None
+
+def janelaHsv( dados ):
     print("Confira a janela de edição")
 
-    root = HsvWindow(caminho)
+    global dados_f
+
+    dados_f = dados
+    root = HsvWindow( dados )
     root.mainloop()
