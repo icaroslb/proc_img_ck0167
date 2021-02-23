@@ -2,6 +2,7 @@
 import esteganografia, hsv_interface
 import pygame, sys
 from pygame.locals import *
+import eqCores_Interface
 #from pygame.local import *
 
 import threading
@@ -53,7 +54,7 @@ class Console ( Thread ):
         while ( True ):
             opcao = -1
 
-            while ( opcao < 0 or opcao > 7 ):
+            while ( opcao < 0 or opcao > 8 ):
                 print ( "Menu:" )
 
                 print ( "-1: Sair\n"
@@ -64,7 +65,8 @@ class Console ( Thread ):
                       + " 4: Linear por partes\n"
                       + " 5: Filtros\n"
                       + " 6: Esteganografia\n"
-                      + " 7: Matiz, saturação e brilho\n")
+                      + " 7: Matiz, saturação e brilho\n"
+                      + " 8: Equilíbrio de cores\n")
 
                 opcao = int( input ( ": " ) )
 
@@ -117,6 +119,8 @@ class Console ( Thread ):
                 esteganografia.codificar_dados( caminho )
             elif ( opcao == 7 ):
                 hsv_interface.janelaHsv(caminho)
+            elif ( opcao == 8 ):
+                eqCores_Interface.janelaEq(caminho)
 
             print ( "\n" )
 

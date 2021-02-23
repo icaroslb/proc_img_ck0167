@@ -1,10 +1,8 @@
-from gerais import salvar_imagem
 import PIL
 from PIL import Image, ImageTk
 from tkinter import *
 import numpy as np
 import tkinter as tk
-from tkinter import ttk
 from rgbHsv import ajustarValor, hsvArray, ajustarSat, ajustarMatiz
 
 
