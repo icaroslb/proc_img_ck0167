@@ -2,16 +2,17 @@ import numpy as np
 import gerais
 
 def mais_prox ( valor ):
-    valor_1 = int( valor )
-    valor_2 = valor_1 + 1
-
-    dif_1 = valor - valor_1
-    dif_2 = valor_2 - valor
-
-    if ( valor_1 < dif_2 ):
-        return valor_1
-    else:
-        return valor_2
+    #valor_1 = int( valor )
+    #valor_2 = valor_1 + 1
+    #
+    #dif_1 = valor - valor_1
+    #dif_2 = valor_2 - valor
+    #
+    #if ( valor_1 < dif_2 ):
+    #    return valor_1
+    #else:
+    #    return valor_2
+    return int( valor )
 
 def bilinear ( img, pos_x, pos_y, k ):
     pos_x_1 = int( pos_x )
@@ -37,43 +38,43 @@ def bilinear ( img, pos_x, pos_y, k ):
 
     return ( peso_y_1 * media_1 ) + ( peso_y_2 * media_2 )
 
-def escala_proximo ( img, aumento ):
-    novo_shape = [ int( img.shape[0] * aumento ), int( img.shape[1] * aumento ), img.shape[2] ]
+def escala_proximo ( img, aumento_x, aumento_y ):
+    novo_shape = [ int( img.shape[0] * aumento_y ), int( img.shape[1] * aumento_x ), img.shape[2] ]
     img_escalada = np.zeros( novo_shape )
 
-    if ( aumento == 1 ):
+    if ( aumento_x == 1 and aumento_y == 1 ):
         img_escalada = img
     else:
         for i in range( novo_shape[0] ):
-            pos_x = min( mais_prox( i / aumento ), img.shape[0] - 1 )
+            pos_y = min( mais_prox( i / aumento_y ), img.shape[0] - 1 )
 
             for j in range( novo_shape[1] ):
-                pos_y = min( mais_prox( j / aumento ), img.shape[1] - 1 )
+                pos_x = min( mais_prox( j / aumento_x ), img.shape[1] - 1 )
 
                 for k in range( novo_shape[2] ):
-                    img_escalada[i][j][k] = img[pos_x][pos_y][k]
+                    img_escalada[i][j][k] = img[pos_y][pos_x][k]
 
     return img_escalada
 
-def escala_bilinear ( img, aumento ):
-    novo_shape = [ int( img.shape[0] * aumento ), int( img.shape[1] * aumento ), img.shape[2] ]
+def escala_bilinear ( img, aumento_x, aumento_y ):
+    novo_shape = [ int( img.shape[0] * aumento_y ), int( img.shape[1] * aumento_x ), img.shape[2] ]
     img_escalada = np.zeros( novo_shape )
 
-    if ( aumento == 1 ):
+    if ( aumento_x == 1 and aumento_y == 1 ):
         img_escalada = img
     else:
         for i in range( novo_shape[0] ):
-            pos_x = i / aumento
+            pos_y = i / aumento_y
             
             for j in range( novo_shape[1] ):
-                pos_y = j / aumento
+                pos_x = j / aumento_x
 
                 for k in range( novo_shape[2] ):
-                    img_escalada[i][j][k] = bilinear( img, pos_x, pos_y, k )
+                    img_escalada[i][j][k] = bilinear( img, pos_y, pos_x, k )
 
     return img_escalada
 
-def dimensao_pos0__rot( vetor_x_r, vetor_y_r, angulo ):
+def dimensao_pos0_rot( vetor_x_r, vetor_y_r, angulo ):
     p0 = np.array( [ [0], [0] ] )
     p1 = vetor_x_r
     p2 = vetor_x_r + vetor_y_r
@@ -88,28 +89,28 @@ def dimensao_pos0__rot( vetor_x_r, vetor_y_r, angulo ):
         altura  = abs( ( p3 - p1 )[1][0] )
 
         pos_zero = np.array( [ [ p0[0][0] ], [ p1[1][0] ] ] )
-        novo_shape = [ int( altura ), int( largura ), img.shape[2] ]
+        novo_shape = [ int( altura ), int( largura ), 3 ]
 
     elif ( angulo >= ( np.pi / 2 ) and angulo < np.pi ):
         largura = abs( ( p3 - p1 )[0][0] )
         altura  = abs( ( p2 - p0 )[1][0] )
 
         pos_zero = np.array( [ [ p1[0][0] ], [ p2[1][0] ] ] )
-        novo_shape = [ int( altura ), int( largura ), img.shape[2] ]
+        novo_shape = [ int( altura ), int( largura ), 3 ]
 
     elif ( angulo >= np.pi and angulo < ( 3 * np.pi / 2 ) ):
         largura = abs( ( p2 - p0 )[0][0] )
         altura  = abs( ( p3 - p1 )[1][0] )
 
         pos_zero = np.array( [ [ p2[0][0] ], [ p3[1][0] ] ] )
-        novo_shape = [ int( altura ), int( largura ), img.shape[2] ]
+        novo_shape = [ int( altura ), int( largura ), 3 ]
 
     elif ( angulo >= ( 3 * np.pi / 2 ) and angulo < ( 2 * np.pi ) ):
         largura = abs( ( p3 - p1 )[0][0] )
         altura  = abs( ( p2 - p0 )[1][0] )
 
         pos_zero = np.array( [ [ p3[0][0] ], [ p0[1][0] ] ] )
-        novo_shape = [ int( altura ), int( largura ), img.shape[2] ]
+        novo_shape = [ int( altura ), int( largura ), 3 ]
     
     return pos_zero, novo_shape
 
@@ -126,7 +127,7 @@ def rotacao_proximo ( img, angulo ):
     soma = vetor_x_r + vetor_y_r
     dife = vetor_x_r - vetor_y_r
 
-    pos_zero, novo_shape = dimensao_pos0__rot( vetor_x_r, vetor_y_r, angulo )
+    pos_zero, novo_shape = dimensao_pos0_rot( vetor_x_r, vetor_y_r, angulo )
     
     img_rotacionada = np.zeros( novo_shape )
 
@@ -161,7 +162,7 @@ def rotacao_bilinear ( img, angulo ):
     soma = vetor_x_r + vetor_y_r
     dife = vetor_x_r - vetor_y_r
 
-    pos_zero, novo_shape = dimensao_pos0__rot( vetor_x_r, vetor_y_r, angulo )
+    pos_zero, novo_shape = dimensao_pos0_rot( vetor_x_r, vetor_y_r, angulo )
     
     img_rotacionada = np.zeros( novo_shape )
 
@@ -183,8 +184,57 @@ def rotacao_bilinear ( img, angulo ):
 
     return img_rotacionada
 
+def transformacoes_terminal( dados, mutex ):
+    while( True ):
+        print( "\nEscolha a transformação:\n"
+             + "1 - Escala\n"
+             + "2 - Rotação\n" )
+        
+        opcao_1 = int( input( ": " ) )
+
+        if ( opcao_1 < 1 or opcao_1 > 2 ):
+            print( "\nOpção inexistente!!\n" )
+        else:
+            break
+    
+    while( True ):
+        print( "\nEscolha o algoritmo de interpolação:\n"
+             + "1 - Mais próximo\n"
+             + "2 - Bilinear\n" )
+        
+        opcao_2 = int( input( ": " ) )
+
+        if ( opcao_2 < 1 or opcao_2 > 2 ):
+            print( "\nOpção inexistente!!\n" )
+        else:
+            break
+    
+    if ( opcao_1 == 1 ):
+        escala_x, escala_y = [ float( i ) for i in input( "\nInsira o valor da escala 'x y': " ).split( " " ) ]
+
+        if ( opcao_2 == 1 ):
+            resul = escala_proximo( dados.I, escala_x, escala_y )
+        else:
+            resul = escala_bilinear( dados.I, escala_x, escala_y )
+    else:
+        rotacionar = float( input( "\nInsira o grau de rotação: " ) )
+        rotacionar = rotacionar * np.pi / 180
+
+        if ( opcao_2 == 1 ):
+            resul = rotacao_proximo( dados.I, rotacionar )
+        else:
+            resul = rotacao_bilinear( dados.I, rotacionar )
+    
+    mutex.acquire()
+
+    dados.I = resul
+
+    mutex.release()
+
+    dados.calcular_tamanho()
+
 if __name__ == "__main__":
-    img_lida = gerais.ler_imagem( "pikachu.png" )
+    img_lida = gerais.ler_imagem( "Pinguim_1.jpg" )
     
     if ( len( img_lida.shape ) != 3 ):
         img = np.zeros( [ img_lida.shape[0], img_lida.shape[1], 3 ] )
@@ -196,7 +246,7 @@ if __name__ == "__main__":
     print( "Processando..." )
     #img = escala_proximo( img, 2.5 )
     #img = escala_bilinear( img, 0.45 )
-    img = rotacao_proximo( img, ( ( 3 * np.pi / 4 ) ) )
+    img = rotacao_proximo( img, ( 135 * np.pi / 180 ) )
     #img = rotacao_bilinear( img, ( ( -3 * np.pi / 4 ) ) )
     print( "Completo!" )
 

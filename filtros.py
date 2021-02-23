@@ -115,49 +115,36 @@ def laplaciano ( imagem, constante ):
 
     laplace = imagem + ( constante * mascara )
 
-    maior_valor = max( [ valor for linha in laplace for profundidade in linha for valor in profundidade ] )
-    menor_valor = min( [ valor for linha in laplace for profundidade in linha for valor in profundidade ] )
-
-    return ( laplace - menor_valor ) / ( maior_valor - menor_valor )
+    return laplace
 
 def high_boost ( imagem, constante ):
     img = np.copy( imagem )
     borrada = mediana( img, 1 )
 
     mascara = imagem - borrada
-
+    
     boost = imagem + ( constante * mascara )
 
-    maior_valor = max( [ valor for linha in boost for profundidade in linha for valor in profundidade ] )
-    menor_valor = min( [ valor for linha in boost for profundidade in linha for valor in profundidade ] )
-
-    return ( boost - menor_valor ) / ( maior_valor - menor_valor ) 
+    return boost
 
 def sobel_x ( imagem ):
     filtro = np.array( [ [ -1, 0, 1 ], [ -2, 0, 2 ], [ -1, 0, 1 ] ] )
     
     imagem_filtrada = convolucao( imagem, 1, imagem.shape, filtro, 3 )
 
-    maior_valor = max( [ valor for linha in imagem_filtrada for profundidade in linha for valor in profundidade ] )
-    menor_valor = min( [ valor for linha in imagem_filtrada for profundidade in linha for valor in profundidade ] )
-
-    return ( imagem_filtrada - menor_valor ) / ( maior_valor - menor_valor )
+    return imagem_filtrada
 
 def sobel_y ( imagem ):
     filtro = np.array( [ [ 1, 2, 1 ], [ 0, 0, 0 ], [ -1, -2, -1 ] ] )
     
     imagem_filtrada = convolucao( imagem, 1, imagem.shape, filtro, 3 )
 
-    maior_valor = max( [ valor for linha in imagem_filtrada for profundidade in linha for valor in profundidade ] )
-    menor_valor = min( [ valor for linha in imagem_filtrada for profundidade in linha for valor in profundidade ] )
-
-    return ( imagem_filtrada - menor_valor ) / ( maior_valor - menor_valor )
+    return imagem_filtrada
 
 def sobel_xy ( imagem ):
     mascara_x = sobel_x( imagem )
     mascara_y = sobel_y( imagem )
 
-    #return ( mascara_x + mascara_y ) / 2
     return ( mascara_x + mascara_y ) / 2
 
 def terminal_filtro_generico ( dados, tamanho, mutex ):
@@ -170,38 +157,47 @@ def terminal_filtro_generico ( dados, tamanho, mutex ):
              + "5 - High boost\n"
              + "6 - Sobel x\n"
              + "7 - Sobel y\n"
-             + "8 - Sobel xy\n"
-             + "9 - Fourier\n" )
+             + "8 - Sobel xy\n" )
 
         opcao = int( input( ": " ) )
 
-        if ( opcao < 1 or opcao > 9 ):
+        if ( opcao < 1 or opcao > 8 ):
             print( "\nOpção inexistente!!\n" )
         else:
             break
 
     print( "Processando..." )
 
+    if ( opcao == 1 ):
+        resul = media_simples( dados.I, tamanho )
+    elif ( opcao == 2 ):
+        resul = gaussiano( dados.I, tamanho )
+    elif ( opcao == 3 ):
+        resul = mediana( dados.I, tamanho )
+    elif ( opcao == 4 ):
+        constante = float( input( "Insira a constante: " ) )
+
+        resul = laplaciano( dados.I, constante )
+    elif ( opcao == 5 ):
+        constante = float( input( "Insira a constante: " ) )
+
+        resul = high_boost( dados.I, constante )
+    elif ( opcao == 6 ):
+        resul = sobel_x( dados.I )
+    elif ( opcao == 7 ):
+        resul = sobel_y( dados.I )
+    elif ( opcao == 8 ):
+        resul = sobel_xy( dados.I )
+    
+    for i in range ( 3 ):
+        maior_valor = max( [ valor for linha in resul[ :, :, i ] for valor in linha ] )
+        menor_valor = min( [ valor for linha in resul[ :, :, i ] for valor in linha ] )
+
+        resul[ :, :, i ] = ( resul[ :, :, i ] - menor_valor ) / ( maior_valor - menor_valor )
+    
     mutex.acquire()
 
-    if ( opcao == 1 ):
-        dados.I = media_simples( dados.I, tamanho )
-    elif ( opcao == 2 ):
-        dados.I = gaussiano( dados.I, tamanho )
-    elif ( opcao == 3 ):
-        dados.I = mediana( dados.I, tamanho )
-    elif ( opcao == 4 ):
-        dados.I = laplaciano( dados.I, 0.2 )
-    elif ( opcao == 5 ):
-        dados.I = high_boost( dados.I, 0.5 )
-    elif ( opcao == 6 ):
-        dados.I = sobel_x( dados.I )
-    elif ( opcao == 7 ):
-        dados.I = sobel_y( dados.I )
-    elif ( opcao == 8 ):
-        dados.I = sobel_xy( dados.I )
-    elif ( opcao == 9 ):
-        dados.I = fourier.transformada_fourier( dados.I )
+    dados.I = resul
 
     mutex.release()
 
@@ -227,9 +223,19 @@ def terminal_filtro_customizado ( dados, tamanho, mutex ):
 
     print( "Processando..." )
 
+    
+
+    resul = convolucao( dados.I, tamanho, dim, filtro, qtd )
+
+    for i in range ( 3 ):
+        maior_valor = max( [ valor for linha in resul[ :, :, i ] for valor in linha ] )
+        menor_valor = min( [ valor for linha in resul[ :, :, i ] for valor in linha ] )
+
+        resul[ :, :, i ] = ( resul[ :, :, i ] - menor_valor ) / ( maior_valor - menor_valor )
+
     mutex.acquire()
 
-    dados.I = convolucao( dados.I, tamanho, dim, filtro, qtd )
+    dados.I = resul
 
     mutex.release()
 

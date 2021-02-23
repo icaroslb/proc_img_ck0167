@@ -62,7 +62,7 @@ def transformada_passa_baixa_suave( ondas, raio, raio_suave ):
             for k in range( dim[2] ):
                 dist = abs( i - meio[0] ) + abs( j - meio[1] )
                 if( dist > raio ):
-                    ondas_passadas[i][j][k] = ondas[i][j][k] * max( ( raio_suave - ( dist - raio ) ) / raio_suave, 0 )
+                    ondas_passadas[i][j][k] = ondas[i][j][k] * max( ( raio_suave - abs( dist - raio ) ) / raio_suave, 0 ) ** 0.5
     
     return ondas_passadas
 
@@ -91,11 +91,11 @@ def transformada_passa_alta_suave( ondas, raio, raio_suave ):
             for k in range( dim[2] ):
                 dist = abs( i - meio[0] ) + abs( j - meio[1] )
                 if( dist < raio ):
-                    ondas_passadas[i][j][k] = ondas[i][j][k] * max( ( raio_suave - ( raio - dist ) ) / raio_suave, 0 )
+                    ondas_passadas[i][j][k] = ondas[i][j][k] * max( ( raio_suave - abs( raio - dist ) ) / raio_suave, 0 ) ** 0.5
     
     return ondas_passadas
 
-def transformada_terminal( dados ):
+def transformada_terminal( dados, mutex ):
     while ( True ):
         print( "\nEscolha o filtro:\n"
              + "1 - Passa baixa dura\n"
@@ -113,6 +113,7 @@ def transformada_terminal( dados ):
             break
     
     ondas = np.zeros( dados.I.shape, dtype = complex )
+    ondas_resul = np.zeros( dados.I.shape )
     
     for i in range( dados.I.shape[2] ):
         ondas[ :, :, i ] = np.fft.fft2( dados.I[ :, :, i ] )
@@ -140,6 +141,15 @@ def transformada_terminal( dados ):
     
     for i in range( 3 ):
         ondas[ :, :, i ] = np.fft.fftshift( ondas[ :, :, i ] )
-        ondas[ :, :, i ] = np.real( np.fft.ifft2( ondas[ :, :, i ] ) )
+        ondas_resul[ :, :, i ] = np.real( np.fft.ifft2( ondas[ :, :, i ] ) )
+    
+        mini = min( [ valor for x in ondas_resul[ :, :, i ] for valor in x  ] )
+        maxi = max( [ valor for x in ondas_resul[ :, :, i ] for valor in x  ] )
 
-    dados.I = np.real( ondas )
+        ondas_resul[ :, :, i ] = ( ondas_resul[ :, :, i ] - mini ) / ( maxi - mini )
+
+    mutex.acquire()
+    
+    dados.I = ondas_resul
+
+    mutex.release()

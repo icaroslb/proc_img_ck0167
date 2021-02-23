@@ -15,6 +15,9 @@ import negativo as neg
 import gamma
 import linear_partes
 import filtros
+import fourier
+import transformacoes
+
 
 class Dados :
     def __init__ ( self, caminho ):
@@ -66,7 +69,9 @@ class Console ( Thread ):
                       + " 5: Filtros\n"
                       + " 6: Esteganografia\n"
                       + " 7: Matiz, saturação e brilho\n"
-                      + " 8: Equilíbrio de cores\n")
+                      + " 8: Equilíbrio de cores\n"
+                      + " 9: Fourier\n"
+                      + "10: Transformações\n" )
 
                 opcao = int( input ( ": " ) )
 
@@ -121,6 +126,10 @@ class Console ( Thread ):
                 hsv_interface.janelaHsv(caminho)
             elif ( opcao == 8 ):
                 eqCores_Interface.janelaEq(caminho)
+            elif ( opcao == 9 ):
+                fourier.transformada_terminal( dados, mutex )
+            elif ( opcao == 10 ):
+                transformacoes.transformacoes_terminal( dados, mutex )
 
             print ( "\n" )
 
