@@ -57,7 +57,7 @@ class Console ( Thread ):
         while ( True ):
             opcao = -1
 
-            while ( opcao < 0 or opcao > 8 ):
+            while ( opcao < 0 or opcao > 10 ):
                 print ( "Menu:" )
 
                 print ( "-1: Sair\n"
