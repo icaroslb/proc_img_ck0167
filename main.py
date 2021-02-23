@@ -4,7 +4,7 @@ import pygame, sys
 from pygame.locals import *
 import eqCores_Interface
 #from pygame.local import *
-
+import bw
 import threading
 from threading import Thread
 
@@ -57,7 +57,7 @@ class Console ( Thread ):
         while ( True ):
             opcao = -1
 
-            while ( opcao < 0 or opcao > 10 ):
+            while ( opcao < 0 or opcao > 11 ):
                 print ( "Menu:" )
 
                 print ( "-1: Sair\n"
@@ -71,7 +71,8 @@ class Console ( Thread ):
                       + " 7: Matiz, saturação e brilho\n"
                       + " 8: Equilíbrio de cores\n"
                       + " 9: Fourier\n"
-                      + "10: Transformações\n" )
+                      + "10: Transformações\n"
+                      + "11: Preto e branco\n" )
 
                 opcao = int( input ( ": " ) )
 
@@ -130,6 +131,8 @@ class Console ( Thread ):
                 fourier.transformada_terminal( dados, mutex )
             elif ( opcao == 10 ):
                 transformacoes.transformacoes_terminal( dados, mutex )
+            elif ( opcao == 11 ):
+                bw.converter(caminho)
 
             print ( "\n" )
 
