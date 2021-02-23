@@ -62,7 +62,7 @@ def transformada_passa_baixa_suave( ondas, raio, raio_suave ):
             for k in range( dim[2] ):
                 dist = abs( i - meio[0] ) + abs( j - meio[1] )
                 if( dist > raio ):
-                    ondas_passadas[i][j][k] = ondas[i][j][k] * max( ( raio_suave - abs( dist - raio ) ) / raio_suave, 0 ) ** 0.5
+                    ondas_passadas[i][j][k] = ondas[i][j][k] * min( max( ( raio_suave - abs( dist - raio ) ) / raio_suave, 0 ) ** 0.9, 1 )
     
     return ondas_passadas
 
@@ -91,7 +91,7 @@ def transformada_passa_alta_suave( ondas, raio, raio_suave ):
             for k in range( dim[2] ):
                 dist = abs( i - meio[0] ) + abs( j - meio[1] )
                 if( dist < raio ):
-                    ondas_passadas[i][j][k] = ondas[i][j][k] * max( ( raio_suave - abs( raio - dist ) ) / raio_suave, 0 ) ** 0.5
+                    ondas_passadas[i][j][k] = ondas[i][j][k] * min( max( ( raio_suave - abs( raio - dist ) ) / raio_suave, 0 ) ** 0.9, 1 )
     
     return ondas_passadas
 
