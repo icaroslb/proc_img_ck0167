@@ -29,20 +29,26 @@ class Dados :
         self.mostrar_I = True
         self.tamanho = None
 
-        #self.mutex = threading.Semaphore( 1 )
-
         if ( self.I.shape[1] > self.I.shape[0] ):
             self.tamanho = largura, altura = [ int( larg_t / 2 ), int( ( larg_t / 2 ) * ( self.I.shape[0] / self.I.shape[1] ) ) ]
         else:
             self.tamanho = largura, altura = [ int( alt_t * ( self.I.shape[1] / self.I.shape[0] ) ), alt_t ]
         
         #Se for cinza, converte pra colorido
-        if ( len( self.I.shape ) == 2 ):
+        if ( len( self.I.shape ) != 3 ):
             zeros = np.zeros( [ self.I.shape[0], self.I.shape[1], 3 ] )
             for i in range( 3 ):
                 zeros[ :, :, i ] = self.I
             
             self.I = zeros
+        elif ( self.I.shape[2] != 3 ):
+            zeros = np.zeros( [ self.I.shape[0], self.I.shape[1], 3 ] )
+            
+            zeros = self.I[ :, :, 0 : 3 ]
+            
+            self.I = zeros
+        
+        print( self.I.shape )
 
 class Console ( Thread ):
     def __init__ ( self ):
@@ -53,6 +59,13 @@ class Console ( Thread ):
         global dados
         global rodar
         global mutex
+        global abrir_linear
+
+        mutex.acquire()
+
+        dados = Dados( "home.png" )
+
+        mutex.release()
 
         while ( True ):
             opcao = -1
@@ -88,9 +101,7 @@ class Console ( Thread ):
                 
                 mutex.acquire()
                 
-                #self.dados = ge.ler_imagem( self, caminho )
                 dados = Dados( caminho )
-
 
                 mutex.release()
             elif ( opcao == 1 ):
@@ -116,8 +127,12 @@ class Console ( Thread ):
 
                 mutex.release()
             elif ( opcao == 4 ):
+                abrir_linear = True
+
                 linear_partes.terminal( dados, lin, mutex )
                 lin.limpar()
+
+                abrir_linear = False
             elif ( opcao == 5 ):
                 filtros.terminal( dados, mutex )
             elif ( opcao == 6 ):
@@ -146,12 +161,10 @@ def atualiza_tela ( I, tela, tamanho ):
     tela.blit( surface, [ 0, 0 ] )
 
 def main ():
-    #dados = Dados()
-    #tr = Console( dados )
-
     global dados
     global rodar
     global mutex
+    global abrir_linear
 
     tr = Console()
     tr.start()
@@ -165,23 +178,25 @@ def main ():
 
         if ( pygame.mouse.get_pressed()[0] ):
             pos = np.array( pygame.mouse.get_pos() )
-            lin.clique( pos )
+
+            if ( abrir_linear ):
+                lin.clique( pos )
 
         tela.fill( [ 0, 0, 0 ] )
 
+        mutex.acquire()
         if not ( dados is None ):
-            mutex.acquire()
 
             if not ( dados.I is None ):
                 atualiza_tela( dados.I, tela, dados.tamanho )
 
-            mutex.release()
+        mutex.release()
 
-        lin.run()
+        if ( abrir_linear ):
+            lin.run()
         
         pygame.display.update()
 
-        #pygame.event.wait( 500 )
         clock.tick( 30 )
 
     pygame.quit()
@@ -205,5 +220,7 @@ if __name__ == "__main__":
     dados = None
     rodar = True
     mutex = threading.Semaphore( 1 )
+
+    abrir_linear = False
 
     main()
