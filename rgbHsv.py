@@ -102,6 +102,26 @@ def ajustarSat(imgHSV, newSat):
     img = Image.fromarray(rgb.astype( np.uint8 ), 'RGB')
     return img            
 
+def ajustarValor(imgHSV, newVal):
+
+    #Cálculos em hsv
+    for x in range(imgHSV.shape[0]):
+        for y in range(imgHSV.shape[1]):
+            h, s, v = imgHSV[x, y, :]
+            #Normaliza os valores e aplica a alteração de valor
+            if(v + newVal > 100):
+                v = 100
+            elif(v + newVal < 0):
+                v = 0
+            else:
+                v = v + newVal
+            imgHSV[x, y, :] = h, s, v
+
+    #Converte de volta para rgb
+    rgb = rgbArray(imgHSV)
+    img = Image.fromarray(rgb.astype( np.uint8 ), 'RGB')
+    return img
+
 def ajustarMatiz(imgHSV, newHue):
 
     #Cálculos em hsv

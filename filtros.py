@@ -207,7 +207,7 @@ def terminal_filtro_generico ( dados, tamanho, mutex ):
 
     print( "Completo" )
 
-def terminal_filtro_customizado ( dados, tamanho, mutex ):
+def terminal_filtro_customizado ( dados, tamanho, mutex ): 
     if ( tamanho == 1 ):
         qtd = 3
     elif ( tamanho == 2 ):

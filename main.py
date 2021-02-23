@@ -1,5 +1,5 @@
 #from esteganografia import codificar_dados, decodificar_dados
-import esteganografia
+import esteganografia, hsv_interface
 import pygame, sys
 from pygame.locals import *
 #from pygame.local import *
@@ -53,7 +53,7 @@ class Console ( Thread ):
         while ( True ):
             opcao = -1
 
-            while ( opcao < 0 or opcao > 6 ):
+            while ( opcao < 0 or opcao > 7 ):
                 print ( "Menu:" )
 
                 print ( "-1: Sair\n"
@@ -63,7 +63,8 @@ class Console ( Thread ):
                       + " 3: Correção de gama\n"
                       + " 4: Linear por partes\n"
                       + " 5: Filtros\n"
-                      + " 6: Esteganografia\n")
+                      + " 6: Esteganografia\n"
+                      + " 7: Matiz, saturação e brilho\n")
 
                 opcao = int( input ( ": " ) )
 
@@ -114,6 +115,8 @@ class Console ( Thread ):
                 filtros.terminal( dados, mutex )
             elif ( opcao == 6 ):
                 esteganografia.codificar_dados( caminho )
+            elif ( opcao == 7 ):
+                hsv_interface.janelaHsv(caminho)
 
             print ( "\n" )
 
