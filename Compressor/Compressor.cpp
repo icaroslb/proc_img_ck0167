@@ -8,16 +8,21 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "metodos_compressao.h"
+#include "Huffman.h"
 
 int main()
 {
        //cimg_library::CImg<uint8_t> imagem( "benchmark.bmp" );
 
        Pixel *img;
+       uint8_t *c_huffman;
+       Pixel *d_huffman;
+       No_arvore *raiz;
        int largura;
        int altura;
        int canais;
-       int tamanho; 
+       int tamanho;
+       int tamanho_huffman;
 
        img = (Pixel*)stbi_load( "benchmark.bmp", &largura, &altura, &canais, 0 );
 
@@ -32,21 +37,26 @@ int main()
        wavelets_rgb_shift_rotativo( img, tamanho, 2 );
        wavelets_rgb_shift_rotativo( img, tamanho, 2 );
        wavelets_rgb_shift_rotativo( img, tamanho, 2 );
+
+       c_huffman = huffman( img, tamanho, &raiz, &tamanho_huffman );
+       d_huffman = (Pixel*)huffman_i( c_huffman, tamanho_huffman, raiz, tamanho * 3 );
        
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 2 );
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 2 );
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 2 );
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 1 );
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 1 );
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 1 );
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 0 );
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 0 );
-       wavelets_rgb_i_shift_rotativo( img, tamanho, 0 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 2 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 2 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 2 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 1 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 1 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 1 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 0 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 0 );
+       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 0 );
 
        transpor_img( img, largura, altura );
        transpor_img( img, altura, largura );
        
-       stbi_write_bmp( "teste.bmp", largura, altura, canais, (char*)img );
+       //stbi_write_bmp( "teste.bmp", largura, altura, canais, (char*)img );
+       stbi_write_bmp( "teste.bmp", largura, altura, canais, d_huffman );
+       std::cout << "fim" << std::endl;
 }
 
 // Executar programa: Ctrl + F5 ou Menu Depurar > Iniciar Sem Depuração
