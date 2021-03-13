@@ -39,7 +39,7 @@ int main()
        wavelets_rgb_shift_rotativo( img, tamanho, 2 );
 
        c_huffman = huffman( img, tamanho, &raiz, &tamanho_huffman );
-       d_huffman = (Pixel*)huffman_i( c_huffman, tamanho_huffman, raiz, tamanho * 3 );
+       d_huffman = (Pixel*)huffman_i( c_huffman, tamanho_huffman, tamanho * 3 );
        
        wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 2 );
        wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 2 );
