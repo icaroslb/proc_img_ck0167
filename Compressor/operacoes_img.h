@@ -1,3 +1,6 @@
+#ifndef OPERACOES_IMG
+#define OPERACOES_IMG
+
 #include <iostream>
 #include <fstream>
 #include <cstdint>
@@ -16,3 +19,5 @@ struct Pixel {
 };
 
 void transpor_img ( Pixel *img, int largura, int altura );
+
+#endif
