@@ -1,7 +1,7 @@
 #ifndef METODOS_COMPRESSAO_H
 #define METODOS_COMPRESSAO_H
 
-#include "operacoes_img.h"
+#include "util.h"
 
 void wavelets ( uint8_t *dados, int tamanho );
 void wavelets_i ( uint8_t *dados, int tamanho );

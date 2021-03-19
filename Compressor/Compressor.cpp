@@ -1,19 +1,13 @@
 // Compressor.cpp : Este arquivo contém a função 'main'. A execução do programa começa e termina ali.
 //
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
 #include <iostream>
-#include "stb_image.h"
-#include "stb_image_write.h"
 #include "metodos_compressao.h"
 #include "Huffman.h"
+#include "Cod_preditiva.h"
 
 int main()
 {
-       //cimg_library::CImg<uint8_t> imagem( "benchmark.bmp" );
-
        Pixel *img;
        uint8_t *c_huffman;
        Pixel *d_huffman;
@@ -24,38 +18,22 @@ int main()
        int tamanho;
        int tamanho_huffman;
 
-       img = (Pixel*)stbi_load( "benchmark.bmp", &largura, &altura, &canais, 0 );
+       img = abrir_bmp( "benchmark.bmp", &largura, &altura, &canais );
 
        tamanho = largura * altura;
 
-       wavelets_rgb_shift_rotativo( img, tamanho, 0 );
-       wavelets_rgb_shift_rotativo( img, tamanho, 0 );
-       wavelets_rgb_shift_rotativo( img, tamanho, 0 );
-       wavelets_rgb_shift_rotativo( img, tamanho, 1 );
-       wavelets_rgb_shift_rotativo( img, tamanho, 1 );
-       wavelets_rgb_shift_rotativo( img, tamanho, 1 );
-       wavelets_rgb_shift_rotativo( img, tamanho, 2 );
-       wavelets_rgb_shift_rotativo( img, tamanho, 2 );
-       wavelets_rgb_shift_rotativo( img, tamanho, 2 );
-
-       c_huffman = huffman( img, tamanho, &raiz, &tamanho_huffman );
-       d_huffman = (Pixel*)huffman_i( c_huffman, tamanho_huffman, tamanho * 3 );
-       
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 2 );
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 2 );
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 2 );
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 1 );
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 1 );
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 1 );
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 0 );
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 0 );
-       wavelets_rgb_i_shift_rotativo( d_huffman, tamanho, 0 );
-
+       codificacao_preditiva( img, largura, altura );
        transpor_img( img, largura, altura );
-       transpor_img( img, altura, largura );
+       codificacao_preditiva( img, altura, largura );
+
+       c_huffman = huffman( (uint8_t*)img, tamanho * 3, &raiz, &tamanho_huffman );
+       d_huffman = (Pixel*)huffman_i( c_huffman, tamanho_huffman, tamanho * 3 );
+
+       codificacao_preditiva_i( d_huffman, altura, largura );
+       transpor_img( d_huffman, altura, largura );
+       codificacao_preditiva_i( d_huffman, largura, altura );
        
-       //stbi_write_bmp( "teste.bmp", largura, altura, canais, (char*)img );
-       stbi_write_bmp( "teste.bmp", largura, altura, canais, d_huffman );
+       salvar_bmp( "teste.bmp", largura, altura, canais, d_huffman );
        std::cout << "fim" << std::endl;
 }
 
