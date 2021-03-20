@@ -85,7 +85,7 @@ void deletar_arvore ( No_arvore *raiz )
     }
 }
 
-uint8_t* huffman_rgb ( Pixel *dados, int tamanho, No_arvore **raiz_retorno, int *novo_tamanho )
+uint8_t* huffman ( Pixel *dados, int tamanho, int *novo_tamanho )
 {
     std::map< uint8_t, int > qtd_cor;
 
@@ -165,20 +165,22 @@ uint8_t* huffman_rgb ( Pixel *dados, int tamanho, No_arvore **raiz_retorno, int 
         }
     }
 
-    uint8_t *retorno = new uint8_t[ dados_retorno.size() ];
-    memcpy( retorno, dados_retorno.data(), dados_retorno.size() );
+    uint8_t *retorno = new uint8_t[ dados_retorno.size() + 4 ];
+    int tamanho_dados = tamanho * 3;
+    memcpy( retorno, &tamanho_dados, 4 );
+    memcpy( &retorno[4], dados_retorno.data(), dados_retorno.size() );
     
     deletar_arvore( raiz );
 
     if ( novo_tamanho != nullptr )
-        *novo_tamanho = dados_retorno.size();
+        *novo_tamanho = dados_retorno.size() + 4;
 
-    std::cout << tamanho * 3 << " vs " << dados_retorno.size() << std::endl;
+    std::cout << tamanho * 3 << " vs " << dados_retorno.size() + 4 << std::endl;
 
     return retorno;
 }
 
-uint8_t* huffman ( uint8_t *dados, int tamanho, No_arvore **raiz_retorno, int *novo_tamanho )
+uint8_t* huffman ( uint8_t *dados, int tamanho, int *novo_tamanho )
 {
     std::map< uint8_t, int > qtd_cor;
 
@@ -254,33 +256,37 @@ uint8_t* huffman ( uint8_t *dados, int tamanho, No_arvore **raiz_retorno, int *n
         }
     }
 
-    uint8_t *retorno = new uint8_t[ dados_retorno.size() ];
-    memcpy( retorno, dados_retorno.data(), dados_retorno.size() );
+    uint8_t *retorno = new uint8_t[ dados_retorno.size() + 4 ];
+    memcpy( retorno, &tamanho, 4 );
+    memcpy( &retorno[4], dados_retorno.data(), dados_retorno.size() );
     
     deletar_arvore( raiz );
 
     if ( novo_tamanho != nullptr )
-        *novo_tamanho = dados_retorno.size();
+        *novo_tamanho = dados_retorno.size() + 4;
 
-    std::cout << tamanho << " vs " << dados_retorno.size() << std::endl;
+    std::cout << tamanho << " vs " << dados_retorno.size() + 4 << std::endl;
 
     return retorno;
 }
 
-uint8_t* huffman_i ( uint8_t *dados, int tamanho, int tamanho_original )
+uint8_t* huffman_i ( uint8_t *dados )
 {
+    int tamanho_original;
+    memcpy( &tamanho_original, dados, 4 );
+
     uint8_t *retorno = new uint8_t[ tamanho_original ];
     No_arvore *percorrer;
     uint8_t mascara = 0b10000000;
     uint8_t bit_lido;
     int pos_retorno = 0;
-    int pos_dados = 0;
+    int pos_dados = 4;
 
     int repeticoes = 0;
     uint8_t cor;
     std::vector< No_arvore* > ordem_no;
      No_arvore* raiz;
-    
+
     do {
         memcpy( &repeticoes, &dados[ pos_dados ], 4 );
         pos_dados += 4;

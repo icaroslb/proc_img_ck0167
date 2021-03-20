@@ -33,3 +33,31 @@ void codificacao_preditiva_i ( Pixel *dados, int largura, int altura )
 
     delete [] dados_cod;
 }
+
+void codificacao_preditiva ( uint8_t *dados, int tamanho )
+{
+    uint8_t *dados_cod = new uint8_t[ tamanho ];
+
+    dados_cod[ tamanho ] = dados[ tamanho ];
+    for ( int i = 1; i < tamanho; i++ ) {
+        dados_cod[ i ] = dados[ i ] - dados[ i - 1 ];
+    }
+
+    memcpy( dados, dados_cod, ( tamanho * sizeof( uint8_t ) ) );
+
+    delete [] dados_cod;
+}
+
+void codificacao_preditiva_i ( uint8_t *dados, int tamanho )
+{
+    uint8_t *dados_cod = new uint8_t[ tamanho ];
+
+    dados_cod[ 0 ] = dados[ 0 ];
+    for ( int i = 1; i < tamanho; i++ ) {
+        dados_cod[ i ] = dados[ i ] + dados_cod[ i - 1 ];
+    }
+
+    memcpy( dados, dados_cod, ( tamanho * sizeof( uint8_t ) ) );
+
+    delete [] dados_cod;
+}

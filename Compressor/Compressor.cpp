@@ -16,7 +16,8 @@ int main()
        int altura;
        int canais;
        int tamanho;
-       int tamanho_huffman;
+       int tamanho_huffman_1;
+       int tamanho_huffman_2;
 
        img = abrir_bmp( "benchmark.bmp", &largura, &altura, &canais );
 
@@ -26,8 +27,11 @@ int main()
        transpor_img( img, largura, altura );
        codificacao_preditiva( img, altura, largura );
 
-       c_huffman = huffman( (uint8_t*)img, tamanho * 3, &raiz, &tamanho_huffman );
-       d_huffman = (Pixel*)huffman_i( c_huffman, tamanho_huffman, tamanho * 3 );
+       c_huffman = huffman( (uint8_t*)img, tamanho * 3, &tamanho_huffman_1 );
+       c_huffman = huffman( c_huffman, tamanho_huffman_1, &tamanho_huffman_2 );
+
+       d_huffman = (Pixel*)huffman_i( c_huffman );
+       d_huffman = (Pixel*)huffman_i( (uint8_t*)d_huffman );
 
        codificacao_preditiva_i( d_huffman, altura, largura );
        transpor_img( d_huffman, altura, largura );
