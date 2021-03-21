@@ -74,8 +74,11 @@ vector<int> lzwCompressor(string entrada)
     return seqcod; 
 } 
 
+/*
 int main(){
     string teste = "A_ASA_DA_CASAAAAAAA_AAAAAs";
     cout << lzwDescompressor(lzwCompressor(teste));
     ///cout << "Espaço economizado: " << teste.length() - lzwCompressor(teste).size() << "\n";
 }
+
+*/
