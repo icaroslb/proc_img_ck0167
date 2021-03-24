@@ -5,6 +5,7 @@
 #include "metodos_compressao.h"
 #include "Huffman.h"
 #include "Cod_preditiva.h"
+#include "lzw.h"
 
 int main()
 {
@@ -18,33 +19,44 @@ int main()
        int tamanho;
        int tamanho_huffman_1;
        int tamanho_huffman_2;
+       std::string dados{""};
 
-       img = abrir_bmp( "benchmark.bmp", &largura, &altura, &canais );
+       img = abrir_bmp("benchmark.bmp", &largura, &altura, &canais);
 
        tamanho = largura * altura;
 
-       codificacao_preditiva( img, largura, altura );
-       transpor_img( img, largura, altura );
-       codificacao_preditiva( img, altura, largura );
+       codificacao_preditiva(img, largura, altura);
+       transpor_img(img, largura, altura);
+       codificacao_preditiva(img, altura, largura);
 
-       c_huffman = huffman( (uint8_t*)img, tamanho * 3, &tamanho_huffman_1 );
-       c_huffman = huffman( c_huffman, tamanho_huffman_1, &tamanho_huffman_2 );
+       c_huffman = huffman((uint8_t *)img, tamanho * 3, &tamanho_huffman_1);
+       c_huffman = huffman(c_huffman, tamanho_huffman_1, &tamanho_huffman_2);
 
-       d_huffman = (Pixel*)huffman_i( c_huffman );
-       d_huffman = (Pixel*)huffman_i( (uint8_t*)d_huffman );
+       //dados.resize( tamanho_huffman_2 );
+       dados.assign( (char*)c_huffman );
+       //memcpy( dados.data(), (char*)c_huffman, tamanho_huffman_2 );
+       std::cout << dados << std::endl;
+       dados = lzwDescompressor( lzwCompressor( dados ) );
+       std::cout << dados << std::endl;
 
-       codificacao_preditiva_i( d_huffman, altura, largura );
-       transpor_img( d_huffman, altura, largura );
-       codificacao_preditiva_i( d_huffman, largura, altura );
-       
-       salvar_bmp( "teste.bmp", largura, altura, canais, d_huffman );
+       d_huffman = (Pixel *)huffman_i((uint8_t *)dados.data());
+       std::cout << __FILE__ << " - " << __LINE__ << std::endl;
+       //d_huffman = (Pixel *)huffman_i((uint8_t *)c_huffman);
+       d_huffman = (Pixel *)huffman_i((uint8_t *)d_huffman);
+       std::cout << __FILE__ << " - " << __LINE__ << std::endl;
+
+       codificacao_preditiva_i(d_huffman, altura, largura);
+       transpor_img(d_huffman, altura, largura);
+       codificacao_preditiva_i(d_huffman, largura, altura);
+
+       salvar_bmp("teste.bmp", largura, altura, canais, d_huffman);
        std::cout << "fim" << std::endl;
 }
 
 // Executar programa: Ctrl + F5 ou Menu Depurar > Iniciar Sem Depuração
 // Depurar programa: F5 ou menu Depurar > Iniciar Depuração
 
-// Dicas para Começar: 
+// Dicas para Começar:
 //   1. Use a janela do Gerenciador de Soluções para adicionar/gerenciar arquivos
 //   2. Use a janela do Team Explorer para conectar-se ao controle do código-fonte
 //   3. Use a janela de Saída para ver mensagens de saída do build e outras mensagens
