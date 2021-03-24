@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include "operacoes_img.h"
+#include "util.h"
 
 struct No_arvore {
     union {
@@ -34,7 +34,8 @@ No_arvore* proximo_no ( No_arvore *no );
 No_arvore* constuir_arvore ( std::vector< No_arvore* > &vetor );
 void percorrer_arvore ( No_arvore *raiz, std::map< uint8_t, int > &id_cor );
 void deletar_arvore ( No_arvore *raiz );
-uint8_t* huffman ( Pixel *dados, int tamanho, No_arvore **raiz_retorno, int *novo_tamanho = nullptr );
-uint8_t* huffman_i ( uint8_t *dados, int tamanho, int tamanho_original );
+uint8_t* huffman ( uint8_t *dados, int tamanho, int *novo_tamanho = nullptr );
+uint8_t* huffman ( Pixel *dados, int tamanho, int *novo_tamanho = nullptr );
+uint8_t* huffman_i ( uint8_t *dados );
 
 #endif

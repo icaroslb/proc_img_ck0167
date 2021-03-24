@@ -98,7 +98,7 @@ void wavelets_i ( uint8_t *dados, int tamanho, int nivel )
        delete [] dados_aux;
 }
 
-void wavelets_rgb ( Pixel *dados, int tamanho, int nivel )
+void wavelets ( Pixel *dados, int tamanho, int nivel )
 {
        Pixel *dados_aux = new Pixel[ tamanho ];
        uint8_t soma;
@@ -133,7 +133,7 @@ void wavelets_rgb ( Pixel *dados, int tamanho, int nivel )
        delete [] dados_aux;
 }
 
-void wavelets_rgb_i ( Pixel *dados, int tamanho, int nivel )
+void wavelets_i ( Pixel *dados, int tamanho, int nivel )
 {
        Pixel *dados_aux = new Pixel[ tamanho ];
        uint8_t valor_media;
@@ -166,7 +166,7 @@ void wavelets_rgb_i ( Pixel *dados, int tamanho, int nivel )
        delete [] dados_aux;
 }
 
-void wavelets_rgb_shift_rotativo ( Pixel *dados, int tamanho, int nivel )
+void wavelets_shift_rotativo ( Pixel *dados, int tamanho, int nivel )
 {
        Pixel *dados_aux = new Pixel[ tamanho ];
        uint8_t soma;
@@ -201,7 +201,7 @@ void wavelets_rgb_shift_rotativo ( Pixel *dados, int tamanho, int nivel )
        delete [] dados_aux;
 }
 
-void wavelets_rgb_i_shift_rotativo ( Pixel *dados, int tamanho, int nivel )
+void wavelets_i_shift_rotativo ( Pixel *dados, int tamanho, int nivel )
 {
        Pixel *dados_aux = new Pixel[ tamanho ];
        uint8_t valor_media;

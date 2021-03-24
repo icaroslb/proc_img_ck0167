@@ -85,7 +85,7 @@ void deletar_arvore ( No_arvore *raiz )
     }
 }
 
-uint8_t* huffman ( Pixel *dados, int tamanho, No_arvore **raiz_retorno, int *novo_tamanho )
+uint8_t* huffman ( Pixel *dados, int tamanho, int *novo_tamanho )
 {
     std::map< uint8_t, int > qtd_cor;
 
@@ -165,33 +165,128 @@ uint8_t* huffman ( Pixel *dados, int tamanho, No_arvore **raiz_retorno, int *nov
         }
     }
 
-    uint8_t *retorno = new uint8_t[ dados_retorno.size() ];
-    memcpy( retorno, dados_retorno.data(), dados_retorno.size() );
+    uint8_t *retorno = new uint8_t[ dados_retorno.size() + 4 ];
+    int tamanho_dados = tamanho * 3;
+    memcpy( retorno, &tamanho_dados, 4 );
+    memcpy( &retorno[4], dados_retorno.data(), dados_retorno.size() );
     
     deletar_arvore( raiz );
 
     if ( novo_tamanho != nullptr )
-        *novo_tamanho = dados_retorno.size();
+        *novo_tamanho = dados_retorno.size() + 4;
 
-    std::cout << tamanho * 3 << " vs " << dados_retorno.size() << std::endl;
+    std::cout << tamanho * 3 << " vs " << dados_retorno.size() + 4 << std::endl;
 
     return retorno;
 }
 
-uint8_t* huffman_i ( uint8_t *dados, int tamanho, int tamanho_original )
+uint8_t* huffman ( uint8_t *dados, int tamanho, int *novo_tamanho )
 {
+    std::map< uint8_t, int > qtd_cor;
+
+    //calcula a quantidade de vezes que cada cor aparece
+    for ( int i = 0; i < tamanho; i++ ) {
+            try {
+                qtd_cor.at( dados[i] )++;
+            } catch ( const std::out_of_range& oor ) {
+                qtd_cor[ dados[i] ] = 1;
+            }
+    }
+
+    std::vector< uint8_t > dados_retorno;
+    std::vector< No_arvore* > ordem_no;
+    No_arvore *raiz;
+    int pos_vetor = 0;
+
+    //Inicializa o vetor com um nó pra cada cor
+    dados_retorno.reserve( ( qtd_cor.size() * 5 ) + 4 );
+    ordem_no.reserve( qtd_cor.size() );
+    for ( auto i = qtd_cor.begin(); i != qtd_cor.end(); i++ ) {
+        ordem_no.push_back( new No_arvore( i->first, i->second, 0, nullptr, nullptr, nullptr ) );
+
+        dados_retorno.push_back( 0 );
+        dados_retorno.push_back( 0 );
+        dados_retorno.push_back( 0 );
+        dados_retorno.push_back( 0 );
+
+        memcpy( &dados_retorno.data()[ pos_vetor ], &i->second, 4 );
+        pos_vetor += 4;
+
+        dados_retorno.push_back( i->first );
+        pos_vetor++;
+    }
+
+    //Limite das informações dos nós da árvore
+    dados_retorno.push_back( 0 );
+    dados_retorno.push_back( 0 );
+    dados_retorno.push_back( 0 );
+    dados_retorno.push_back( 0 );
+    pos_vetor += 4;
+
+    raiz = constuir_arvore( ordem_no );
+
+    std::map< uint8_t, int > id_cor;
+    No_arvore *percorrer;
+    uint8_t mascara = 0b10000000;
+    int posicao;
+
+    //Inicializa os ids
+    percorrer_arvore( raiz, id_cor );
+
+    dados_retorno.push_back( 0 );
+    
+    for ( int i = 0; i < tamanho; i++ ) {
+        posicao = id_cor[ dados[ i ] ];
+            
+        percorrer = raiz;
+        while ( posicao != percorrer->id ) {
+            if ( posicao > percorrer->id ) {
+                percorrer = percorrer->filho_d;
+            } else {
+                percorrer = percorrer->filho_e;
+                dados_retorno[ pos_vetor ] = dados_retorno[ pos_vetor ] | mascara;
+            }
+
+            mascara = mascara >> 1;
+            if ( mascara == 0 ) {
+                mascara = 0b10000000;
+                dados_retorno.push_back( 0 );
+                pos_vetor++;
+            }
+        }
+    }
+
+    uint8_t *retorno = new uint8_t[ dados_retorno.size() + 4 ];
+    memcpy( retorno, &tamanho, 4 );
+    memcpy( &retorno[4], dados_retorno.data(), dados_retorno.size() );
+    
+    deletar_arvore( raiz );
+
+    if ( novo_tamanho != nullptr )
+        *novo_tamanho = dados_retorno.size() + 4;
+
+    std::cout << tamanho << " vs " << dados_retorno.size() + 4 << std::endl;
+
+    return retorno;
+}
+
+uint8_t* huffman_i ( uint8_t *dados )
+{
+    int tamanho_original;
+    memcpy( &tamanho_original, dados, 4 );
+
     uint8_t *retorno = new uint8_t[ tamanho_original ];
     No_arvore *percorrer;
     uint8_t mascara = 0b10000000;
     uint8_t bit_lido;
     int pos_retorno = 0;
-    int pos_dados = 0;
+    int pos_dados = 4;
 
     int repeticoes = 0;
     uint8_t cor;
     std::vector< No_arvore* > ordem_no;
      No_arvore* raiz;
-    
+
     do {
         memcpy( &repeticoes, &dados[ pos_dados ], 4 );
         pos_dados += 4;
@@ -226,6 +321,8 @@ uint8_t* huffman_i ( uint8_t *dados, int tamanho, int tamanho_original )
             pos_dados++;
         }
     }
+
+    deletar_arvore( raiz );
 
     return retorno;
 }
