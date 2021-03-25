@@ -7,9 +7,6 @@
 #include <cstring>
 #include <cmath>
 
-#include "stb_image.h"
-#include "stb_image_write.h"
-
 
 struct Pixel {
     union{
@@ -22,9 +19,19 @@ struct Pixel {
     };
 };
 
-void transpor_img ( Pixel *img, int largura, int altura );
+void transpor_img ( Pixel *img, int largura, int altura )
+{
+    Pixel *img_aux = new Pixel[ largura * altura ];
 
-Pixel* abrir_bmp ( char *nome_img, int *largura, int *altura, int *canais );
-void salvar_bmp ( char *nome_img, int largura, int altura, int canais, Pixel *img );
+    memcpy( img_aux, img, largura * altura * sizeof( Pixel ) );
+
+    for ( int i = 0; i < altura; i++ ) {
+        for ( int j = 0; j < largura; j++ ) {
+            img[ ( j * altura ) + i ] = img_aux[ j + ( i * largura ) ];
+        }
+    }
+
+    delete [] img_aux;
+}
 
 #endif
