@@ -200,8 +200,6 @@ uint8_t* huffman ( uint8_t *dados, int tamanho, int *novo_tamanho = nullptr )
     if ( novo_tamanho != nullptr )
         *novo_tamanho = dados_retorno.size() + 4;
 
-    std::cout << tamanho << " vs " << dados_retorno.size() + 4 << std::endl;
-
     return retorno;
 }
 
@@ -295,12 +293,10 @@ uint8_t* huffman ( Pixel *dados, int tamanho, int *novo_tamanho = nullptr )
     if ( novo_tamanho != nullptr )
         *novo_tamanho = dados_retorno.size() + 4;
 
-    std::cout << tamanho * 3 << " vs " << dados_retorno.size() + 4 << std::endl;
-
     return retorno;
 }
 
-uint8_t* huffman_i ( uint8_t *dados )
+uint8_t* huffman_i ( uint8_t *dados, int *novo_tamanho = nullptr )
 {
     int tamanho_original;
     memcpy( &tamanho_original, dados, 4 );
@@ -353,6 +349,9 @@ uint8_t* huffman_i ( uint8_t *dados )
     }
 
     deletar_arvore( raiz );
+
+    if ( novo_tamanho != nullptr )
+        *novo_tamanho = tamanho_original;
 
     return retorno;
 }
