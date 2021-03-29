@@ -237,4 +237,65 @@ void wavelets_i_shift_rotativo ( Pixel *dados, int tamanho, int nivel )
        delete [] dados_aux;
 }
 
+void wavelets_shift_rotativo ( uint8_t *dados, int tamanho, int nivel )
+{
+       uint8_t *dados_aux = new uint8_t[ tamanho ];
+       uint8_t soma;
+       uint8_t divisao;
+
+       int qtd_divisoes = pow( 2, nivel );
+       int tam_divisoes = tamanho / qtd_divisoes;
+       int metade_div = tam_divisoes / 2;
+       int inicio;
+       int fim;
+
+       memcpy( dados_aux, dados, tamanho * sizeof(uint8_t) );
+
+       for ( int i = 0; i < qtd_divisoes; i++ ) {
+              inicio = tam_divisoes * i;
+              fim = inicio + tam_divisoes - 1;
+
+              for ( int j = inicio; j < fim; j += 2 ) {
+                     soma = dados_aux[ j ] + dados_aux[ j + 1 ];
+                     divisao = soma >> 1;
+              
+                     dados[ j ] = divisao | ( soma << 7 );
+                     dados[ j + 1 ] = dados_aux[ j ] - divisao;
+
+              }
+
+       }
+
+       delete [] dados_aux;
+}
+
+void wavelets_i_shift_rotativo ( uint8_t *dados, int tamanho, int nivel )
+{
+       uint8_t *dados_aux = new uint8_t[ tamanho ];
+       uint8_t valor_media;
+
+       int qtd_divisoes = pow( 2, nivel );
+       int tam_divisoes = tamanho / qtd_divisoes;
+       int metade = tamanho / 2;
+       int metade_div = tam_divisoes / 2;
+       int inicio;
+       int fim;
+
+       memcpy( dados_aux, dados, tamanho * sizeof(uint8_t) );
+
+       for ( int i = 0; i < qtd_divisoes; i++ ) {
+              inicio = tam_divisoes * i;
+              fim = inicio + tam_divisoes - 1;
+
+              for ( int j = inicio; j < fim; j += 2 ) {
+                            valor_media = dados_aux[ j ] & 0b01111111;
+                            dados[ j ] = valor_media + dados_aux[ j + 1 ];
+                            dados[ j + 1 ] = ( valor_media - dados_aux[ j + 1 ] ) + ( dados_aux[ j ] >> 7 );
+              }
+       
+       }
+
+       delete [] dados_aux;
+}
+
 #endif
